@@ -10,17 +10,13 @@ import {
   Mountain,
   Footprints,
   Wifi,
-  Tv,
   Bath,
   MapPin,
   Sunrise,
-  Home,
   Map,
   Check,
   AlertTriangle,
   Camera,
-  Bike,
-  Fish,
   Waves,
   ChevronDown,
   Instagram,
@@ -28,22 +24,41 @@ import {
   Phone,
   Mail,
   Compass,
+  Heart,
+  Volume2,
+  Users,
+  Bed,
+  Eye,
+  Download,
+  Banknote,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Cabañas 5 Lagos de Montebello — Hospedaje frente al lago en Chiapas" },
+      {
+        title:
+          "Cabañas 5 Lagos de Montebello | Hospedaje frente al lago en Chiapas",
+      },
       {
         name: "description",
         content:
-          "Cabañas frente a Cinco Lagos, dentro del Parque Nacional Lagunas de Montebello, Chiapas. Refugio natural con vista al lago, restaurante y senderos. Reserva por WhatsApp.",
+          "Hospédate frente a Cinco Lagos en Lagunas de Montebello, Chiapas. Cabañas rodeadas de bosque, vistas naturales y reserva directa por WhatsApp.",
       },
-      { property: "og:title", content: "Cabañas 5 Lagos de Montebello" },
+      {
+        name: "keywords",
+        content:
+          "Cabañas Cinco Lagos, Cabañas 5 Lagos de Montebello, Hospedaje en Lagunas de Montebello, Cabañas frente al lago en Chiapas, Cabañas en Montebello Chiapas",
+      },
+      {
+        property: "og:title",
+        content:
+          "Cabañas 5 Lagos de Montebello | Hospedaje frente al lago en Chiapas",
+      },
       {
         property: "og:description",
         content:
-          "Despierta frente a Cinco Lagos. Cabañas rodeadas de bosque en Lagunas de Montebello, Chiapas.",
+          "Despierta frente a Cinco Lagos. Cabañas rodeadas de bosque en Lagunas de Montebello, Chiapas. Reserva por WhatsApp.",
       },
       { property: "og:url", content: "/" },
     ],
@@ -55,15 +70,22 @@ export const Route = createFileRoute("/")({
 // ============================================================
 // EDITABLE CONSTANTS — replace with real values when available
 // ============================================================
-const WHATSAPP_NUMBER = "YOUR_NUMBER_HERE"; // e.g. "5219631234567"
-const WHATSAPP_BASE = `https://wa.me/${WHATSAPP_NUMBER}`;
+// 👉 Reemplaza NUMERO por el WhatsApp real, ej. "5219631234567"
+const WHATSAPP_NUMBER = "52NUMERO";
+const WHATSAPP_DEFAULT_MSG =
+  "Hola, quiero cotizar una cabaña en 5 Lagos de Montebello";
+const waLink = (msg: string = WHATSAPP_DEFAULT_MSG) =>
+  `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
+
 const INSTAGRAM_URL = "https://www.instagram.com/5lagosmontebello/";
-const FACEBOOK_URL = "#"; // placeholder
+const FACEBOOK_URL = "#"; // 👉 Agregar enlace oficial de Facebook
+const EMAIL = ""; // 👉 Agregar correo
+const PHONE_DISPLAY = ""; // 👉 Agregar número visible
+// 👉 PEGAR AQUÍ LINK REAL DE GOOGLE MAPS
 const GOOGLE_MAPS_URL =
   "https://www.google.com/maps/search/?api=1&query=Cinco+Lagos+Montebello+Chiapas";
-const ADDRESS = "Carretera a Cinco Lagos Km 2, frente al lago, Santiago, 30160, Chiapas, México.";
-
-const waLink = (msg: string) => `${WHATSAPP_BASE}?text=${encodeURIComponent(msg)}`;
+const ADDRESS =
+  "Carretera a Cinco Lagos Km 2, frente al lago, Santiago, 30160, Chiapas, México.";
 
 function LandingPage() {
   return (
@@ -71,7 +93,7 @@ function LandingPage() {
       <Nav />
       <main>
         <Hero />
-        <Story />
+        <WhyStay />
         <Cabanas />
         <Amenities />
         <Experiences />
@@ -102,9 +124,9 @@ function Nav() {
 
   const links = [
     { href: "#inicio", label: "Inicio" },
+    { href: "#por-que", label: "Por qué" },
     { href: "#cabanas", label: "Cabañas" },
-    { href: "#amenidades", label: "Amenidades" },
-    { href: "#experiencias", label: "Experiencias" },
+    { href: "#galeria", label: "Galería" },
     { href: "#ubicacion", label: "Ubicación" },
     { href: "#faq", label: "FAQ" },
   ];
@@ -113,7 +135,7 @@ function Nav() {
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "bg-warm-white/80 backdrop-blur-md border-b border-border shadow-sm"
+          ? "bg-warm-white/90 backdrop-blur-md border-b border-border shadow-sm"
           : "bg-transparent"
       }`}
     >
@@ -149,7 +171,7 @@ function Nav() {
 
         <div className="flex items-center gap-2">
           <a
-            href={waLink("Hola, me gustaría reservar en Cabañas 5 Lagos de Montebello.")}
+            href={waLink()}
             target="_blank"
             rel="noopener noreferrer"
             className="hidden sm:inline-flex items-center gap-2 rounded-full bg-whatsapp px-4 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-whatsapp-dark min-h-12"
@@ -162,7 +184,9 @@ function Nav() {
             onClick={() => setOpen((v) => !v)}
             aria-label="Abrir menú"
             className={`grid h-11 w-11 place-items-center rounded-full lg:hidden ${
-              scrolled ? "bg-secondary text-lake-deep" : "bg-white/15 text-warm-white backdrop-blur"
+              scrolled
+                ? "bg-secondary text-lake-deep"
+                : "bg-white/15 text-warm-white backdrop-blur"
             }`}
           >
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -184,7 +208,7 @@ function Nav() {
               </a>
             ))}
             <a
-              href={waLink("Hola, me gustaría reservar en Cabañas 5 Lagos de Montebello.")}
+              href={waLink()}
               target="_blank"
               rel="noopener noreferrer"
               className="mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-whatsapp px-5 py-3 text-sm font-semibold text-white"
@@ -202,20 +226,15 @@ function Nav() {
 // HERO
 // ============================================================
 function Hero() {
-  const chips = [
-    { icon: Trees, label: "Frente al Lago" },
-    { icon: Car, label: "Estacionamiento Privado" },
-    { icon: UtensilsCrossed, label: "Restaurante" },
-    { icon: Footprints, label: "Senderismo" },
-    { icon: Mountain, label: "Vista a la Montaña" },
+  const trust = [
+    { icon: MapPin, label: "Ubicación frente al lago" },
+    { icon: MessageCircle, label: "Reserva directa por WhatsApp" },
+    { icon: Heart, label: "Ideal para parejas, familias y viajeros de naturaleza" },
   ];
 
   return (
-    <section
-      id="inicio"
-      className="relative min-h-[100svh] w-full overflow-hidden"
-    >
-      {/* REPLACE WITH REAL IMAGE PATH — breathtaking misty dawn over Cinco Lagos */}
+    <section id="inicio" className="relative min-h-[100svh] w-full overflow-hidden">
+      {/* 👉 REEMPLAZAR con foto real: amanecer frente a Cinco Lagos */}
       <div
         className="absolute inset-0 bg-cover bg-center"
         style={{
@@ -237,13 +256,13 @@ function Hero() {
         </h1>
 
         <p className="mt-5 max-w-2xl text-base text-warm-white/90 sm:text-lg md:text-xl">
-          Cabañas rodeadas de bosque, vistas naturales y la tranquilidad del Parque Nacional
-          Lagunas de Montebello.
+          Cabañas frente al lago, rodeadas de bosque y tranquilidad, en uno de
+          los paisajes más hermosos de Lagunas de Montebello, Chiapas.
         </p>
 
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <a
-            href={waLink("Hola, quiero información y disponibilidad para Cabañas 5 Lagos.")}
+            href={waLink()}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center justify-center gap-2 rounded-full bg-whatsapp px-7 py-4 text-sm font-semibold text-white shadow-lg transition hover:bg-whatsapp-dark min-h-12 sm:text-base"
@@ -260,15 +279,17 @@ function Hero() {
           </a>
         </div>
 
-        <div className="mt-12 flex flex-wrap gap-2 sm:gap-3">
-          {chips.map((c) => (
-            <span
-              key={c.label}
-              className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3.5 py-2 text-xs font-medium text-warm-white backdrop-blur sm:text-sm"
+        <div className="mt-12 grid gap-3 sm:grid-cols-3">
+          {trust.map((t) => (
+            <div
+              key={t.label}
+              className="flex items-center gap-3 rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-medium text-warm-white backdrop-blur"
             >
-              <c.icon className="h-4 w-4 text-turquoise" />
-              {c.label}
-            </span>
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-turquoise/25 text-turquoise">
+                <t.icon className="h-4.5 w-4.5" />
+              </span>
+              {t.label}
+            </div>
           ))}
         </div>
       </div>
@@ -277,58 +298,65 @@ function Hero() {
 }
 
 // ============================================================
-// STORY
+// POR QUÉ HOSPEDARTE AQUÍ
 // ============================================================
-function Story() {
-  return (
-    <section className="bg-sand py-20 md:py-28">
-      <div className="container-x grid gap-10 md:grid-cols-2 md:gap-16 items-center">
-        <div className="relative">
-          <div className="aspect-[4/5] overflow-hidden rounded-3xl shadow-xl">
-            {/* REPLACE WITH REAL IMAGE PATH — cabin exterior / lakefront */}
-            <img
-              src="https://images.unsplash.com/photo-1518398046578-8cca57782e17?auto=format&fit=crop&w=1200&q=80"
-              alt="Cabaña frente al lago en Cinco Lagos, Montebello"
-              className="h-full w-full object-cover"
-              loading="lazy"
-            />
-          </div>
-          <div className="absolute -bottom-6 -right-4 hidden md:flex items-center gap-2 rounded-2xl bg-lake-deep px-5 py-4 text-warm-white shadow-2xl">
-            <Sunrise className="h-6 w-6 text-turquoise" />
-            <div>
-              <div className="text-xs uppercase tracking-wider opacity-80">Refugio natural</div>
-              <div className="font-display text-lg">Cinco Lagos, Chiapas</div>
-            </div>
-          </div>
-        </div>
+function WhyStay() {
+  const reasons = [
+    {
+      icon: Eye,
+      title: "Vista privilegiada a Cinco Lagos",
+      text: "Desperta y duerme con una de las panorámicas más impresionantes del parque nacional.",
+    },
+    {
+      icon: Volume2,
+      title: "Descanso lejos del ruido",
+      text: "Un entorno natural y silencioso, ideal para desconectarte de la ciudad y reconectar contigo.",
+    },
+    {
+      icon: Compass,
+      title: "Atención local y orientación",
+      text: "Te ayudamos a planear tu visita por Montebello: rutas, horarios y recomendaciones locales.",
+    },
+    {
+      icon: Mountain,
+      title: "Cerca de balsas, senderos y miradores",
+      text: "Kayak, paseos en balsa, caminatas y experiencias naturales a pocos minutos de tu cabaña.",
+    },
+  ];
 
-        <div>
+  return (
+    <section id="por-que" className="bg-sand py-20 md:py-28">
+      <div className="container-x">
+        <div className="max-w-2xl">
           <span className="text-xs font-semibold uppercase tracking-[0.18em] text-lake">
-            Nuestro refugio
+            Por qué elegirnos
           </span>
           <h2 className="mt-3 font-display text-3xl font-bold leading-tight text-lake-deep sm:text-4xl md:text-5xl">
-            Un descanso auténtico entre bosque y lagos de colores
+            Por qué hospedarte aquí
           </h2>
-          <p className="mt-6 text-base leading-relaxed text-foreground/80 md:text-lg">
-            Cabañas 5 Lagos de Montebello es un refugio natural ubicado frente a una de las
-            vistas más hermosas del Parque Nacional Lagunas de Montebello. Aquí puedes descansar
-            lejos del ruido, despertar con el canto de las aves, caminar entre bosque y disfrutar
-            de la cercanía con los lagos de colores que hacen único a este destino de Chiapas.
+          <p className="mt-4 text-base text-foreground/70 md:text-lg">
+            Más que un hospedaje, una experiencia frente a uno de los paisajes
+            más hermosos de Chiapas.
           </p>
-          <div className="mt-8 grid grid-cols-3 gap-4">
-            {[
-              { v: "100%", l: "Natural" },
-              { v: "5", l: "Lagos" },
-              { v: "365", l: "Días al año" },
-            ].map((s) => (
-              <div key={s.l} className="rounded-2xl border border-border bg-warm-white p-4 text-center">
-                <div className="font-display text-2xl font-bold text-lake-deep md:text-3xl">
-                  {s.v}
-                </div>
-                <div className="mt-1 text-xs text-muted-foreground">{s.l}</div>
-              </div>
-            ))}
-          </div>
+        </div>
+
+        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {reasons.map((r) => (
+            <div
+              key={r.title}
+              className="flex flex-col rounded-3xl border border-border bg-warm-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+            >
+              <span className="grid h-12 w-12 place-items-center rounded-2xl bg-lake-deep text-warm-white">
+                <r.icon className="h-6 w-6" />
+              </span>
+              <h3 className="mt-5 font-display text-xl font-bold text-lake-deep">
+                {r.title}
+              </h3>
+              <p className="mt-2 text-sm leading-relaxed text-foreground/75">
+                {r.text}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
     </section>
@@ -338,27 +366,71 @@ function Story() {
 // ============================================================
 // CABAÑAS
 // ============================================================
+type Cabin = {
+  name: string;
+  img: string;
+  capacity: string;
+  beds: string;
+  privateBath: string;
+  hotWater: string;
+  view: string;
+  parking: string;
+};
+
 function Cabanas() {
-  const cabins = [
+  // 👉 Edita estos datos cuando tengas información real. Usa "Por confirmar" si falta algo.
+  const cabins: Cabin[] = [
     {
-      title: "Cabaña Vista al Lago",
+      name: "Cabaña [Nombre]",
       img: "https://images.unsplash.com/photo-1542718610-a1d656d1884c?auto=format&fit=crop&w=1200&q=80",
-      badge: "Más solicitada",
-      features: ["Baño privado", "TV", "Toallas", "Área de descanso", "Estacionamiento"],
+      capacity: "Por confirmar",
+      beds: "Por confirmar",
+      privateBath: "Por confirmar",
+      hotWater: "Por confirmar",
+      view: "Vista al lago",
+      parking: "Por confirmar",
     },
     {
-      title: "Cabaña Familiar",
+      name: "Cabaña [Nombre]",
       img: "https://images.unsplash.com/photo-1587061949409-02df41d5e562?auto=format&fit=crop&w=1200&q=80",
-      badge: "Ideal para familias",
-      features: ["Baño privado", "TV", "Toallas", "Minibar", "Estacionamiento"],
+      capacity: "Por confirmar",
+      beds: "Por confirmar",
+      privateBath: "Por confirmar",
+      hotWater: "Por confirmar",
+      view: "Vista al bosque",
+      parking: "Por confirmar",
     },
     {
-      title: "Cabaña con Terraza",
+      name: "Cabaña [Nombre]",
       img: "https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1200&q=80",
-      badge: "Vista panorámica",
-      features: ["Baño privado", "TV", "Toallas", "Balcón / Terraza", "Estacionamiento"],
+      capacity: "Por confirmar",
+      beds: "Por confirmar",
+      privateBath: "Por confirmar",
+      hotWater: "Por confirmar",
+      view: "Terraza con vista",
+      parking: "Por confirmar",
     },
   ];
+
+  const Row = ({
+    icon: Icon,
+    label,
+    value,
+  }: {
+    icon: typeof Users;
+    label: string;
+    value: string;
+  }) => (
+    <li className="flex items-start gap-2.5 text-sm text-foreground/80">
+      <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-turquoise/15 text-lake-deep">
+        <Icon className="h-3.5 w-3.5" />
+      </span>
+      <span>
+        <span className="font-medium text-foreground">{label}: </span>
+        <span className="text-foreground/75">{value}</span>
+      </span>
+    </li>
+  );
 
   return (
     <section id="cabanas" className="py-20 md:py-28">
@@ -371,55 +443,70 @@ function Cabanas() {
             Nuestras cabañas
           </h2>
           <p className="mt-4 text-base text-foreground/70 md:text-lg">
-            Espacios cálidos, materiales naturales y vistas que abrazan al bosque y al lago.
+            Espacios cálidos, materiales naturales y vistas que abrazan al
+            bosque y al lago.
           </p>
         </div>
 
         <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {cabins.map((c) => (
+          {cabins.map((c, i) => (
             <article
-              key={c.title}
+              key={i}
               className="group flex flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition hover:shadow-xl hover:-translate-y-1"
             >
               <div className="relative aspect-[4/3] overflow-hidden">
-                {/* REPLACE WITH REAL IMAGE PATH — cabin interior/exterior */}
+                {/* 👉 REEMPLAZAR con foto real de la cabaña */}
                 <img
                   src={c.img}
-                  alt={`${c.title} en Cabañas 5 Lagos de Montebello`}
+                  alt={`${c.name} en Cabañas 5 Lagos de Montebello`}
                   className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                   loading="lazy"
                 />
                 <span className="absolute left-4 top-4 rounded-full bg-warm-white/95 px-3 py-1 text-xs font-semibold text-lake-deep backdrop-blur">
-                  {c.badge}
+                  {c.view}
                 </span>
               </div>
               <div className="flex flex-1 flex-col p-6">
-                <h3 className="font-display text-2xl font-bold text-lake-deep">{c.title}</h3>
+                <h3 className="font-display text-2xl font-bold text-lake-deep">
+                  {c.name}
+                </h3>
                 <ul className="mt-4 space-y-2.5">
-                  {c.features.map((f) => (
-                    <li key={f} className="flex items-center gap-2.5 text-sm text-foreground/80">
-                      <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-turquoise/15 text-lake-deep">
-                        <Check className="h-3 w-3" />
-                      </span>
-                      {f}
-                    </li>
-                  ))}
+                  <Row icon={Users} label="Capacidad" value={c.capacity} />
+                  <Row icon={Bed} label="Camas" value={c.beds} />
+                  <Row icon={Bath} label="Baño privado" value={c.privateBath} />
+                  <Row icon={Waves} label="Agua caliente" value={c.hotWater} />
+                  <Row icon={Eye} label="Vista" value={c.view} />
+                  <Row icon={Car} label="Estacionamiento" value={c.parking} />
                 </ul>
-                <div className="mt-6 rounded-xl bg-sand px-4 py-3 text-xs text-foreground/70">
-                  Tarifas sujetas a temporada y disponibilidad.
+                <div className="mt-6 rounded-xl bg-sand px-4 py-3 text-xs font-medium text-foreground/75">
+                  Tarifa: sujeta a temporada y disponibilidad.
                 </div>
                 <a
-                  href={waLink(`Hola, me interesa la ${c.title}. ¿Me comparten capacidad y disponibilidad?`)}
+                  href={waLink(
+                    `Hola, me interesa la ${c.name} en 5 Lagos de Montebello. ¿Me comparten capacidad, tarifa y disponibilidad?`,
+                  )}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-5 inline-flex items-center justify-center gap-2 rounded-full bg-lake-deep px-5 py-3 text-sm font-semibold text-warm-white transition hover:bg-lake min-h-12"
                 >
                   <MessageCircle className="h-4 w-4" />
-                  Cotizar capacidad por WhatsApp
+                  Cotizar capacidad
                 </a>
               </div>
             </article>
           ))}
+        </div>
+
+        <div className="mt-10 flex items-start gap-4 rounded-2xl border-l-4 border-turquoise bg-sand p-5 shadow-sm md:p-6">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-turquoise/20 text-lake-deep">
+            <MessageCircle className="h-5 w-5" />
+          </span>
+          <p className="text-sm leading-relaxed text-foreground/80 md:text-base">
+            Para darte una cotización exacta, indícanos{" "}
+            <strong className="text-lake-deep">fecha de llegada</strong>,{" "}
+            <strong className="text-lake-deep">fecha de salida</strong> y{" "}
+            <strong className="text-lake-deep">número de personas</strong>.
+          </p>
         </div>
       </div>
     </section>
@@ -432,12 +519,12 @@ function Cabanas() {
 function Amenities() {
   const items = [
     { icon: Sunrise, label: "Vista al lago" },
-    { icon: Home, label: "Jardín & Terraza" },
+    { icon: Trees, label: "Bosque alrededor" },
     { icon: UtensilsCrossed, label: "Restaurante" },
     { icon: Car, label: "Estacionamiento privado" },
     { icon: Wifi, label: "WiFi (según zona)" },
     { icon: Bath, label: "Baño privado" },
-    { icon: Tv, label: "TV" },
+    { icon: Waves, label: "Agua caliente" },
     { icon: Compass, label: "Atención local" },
   ];
 
@@ -462,7 +549,9 @@ function Amenities() {
               <span className="grid h-11 w-11 place-items-center rounded-xl bg-lake-deep/5 text-lake-deep">
                 <it.icon className="h-5 w-5" />
               </span>
-              <span className="text-sm font-medium text-foreground">{it.label}</span>
+              <span className="text-sm font-medium text-foreground">
+                {it.label}
+              </span>
             </div>
           ))}
         </div>
@@ -474,8 +563,9 @@ function Amenities() {
           <div>
             <div className="font-semibold text-lake-deep">Nota importante</div>
             <p className="mt-1 text-sm leading-relaxed text-foreground/75 md:text-base">
-              Estamos dentro de una zona natural protegida; la señal de celular e internet pueden
-              variar. Te recomendamos descargar tu mapa y comprobantes antes de ingresar al parque.
+              Estamos dentro de una zona natural protegida; la señal de celular
+              e internet pueden variar. Te recomendamos descargar tu mapa antes
+              de ingresar al parque.
             </p>
           </div>
         </div>
@@ -493,8 +583,8 @@ function Experiences() {
     { icon: Compass, title: "Kayak en zonas permitidas" },
     { icon: Footprints, title: "Senderismo y miradores" },
     { icon: Camera, title: "Fotografía de paisaje" },
-    { icon: Fish, title: "Nado y pesca (zonas reguladas)" },
-    { icon: Bike, title: "Ciclismo" },
+    { icon: Mountain, title: "Naturaleza y avistamiento" },
+    { icon: Trees, title: "Caminatas entre bosque" },
   ];
 
   const nearby = [
@@ -527,9 +617,10 @@ function Experiences() {
             Vive Montebello desde Cinco Lagos
           </h2>
           <p className="mt-5 text-base leading-relaxed text-warm-white/85 md:text-lg">
-            Cinco Lagos es uno de los puntos más impresionantes del parque. Desde aquí puedes
-            explorar lagunas conectadas, caminar por senderos y disfrutar de los tonos azules,
-            verdes y turquesas que hacen famoso a Montebello.
+            Cinco Lagos es uno de los puntos más impresionantes del parque.
+            Desde aquí puedes explorar lagunas conectadas, caminar por senderos
+            y disfrutar de los tonos azules, verdes y turquesas que hacen famoso
+            a Montebello.
           </p>
         </div>
 
@@ -572,38 +663,21 @@ function Experiences() {
 // GALLERY
 // ============================================================
 function Gallery() {
-  // REPLACE WITH REAL IMAGE PATHS — Fachada, Interiores, Vista al lago, Terraza, Restaurante, Senderos, Amanecer
-  const images = [
-    {
-      src: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80",
-      alt: "Vista al lago en Cinco Lagos Montebello",
-      span: "md:col-span-2 md:row-span-2",
-    },
-    {
-      src: "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?auto=format&fit=crop&w=900&q=80",
-      alt: "Fachada de cabaña de madera",
-    },
-    {
-      src: "https://images.unsplash.com/photo-1520637836862-4d197d17c55a?auto=format&fit=crop&w=900&q=80",
-      alt: "Interior cálido de cabaña",
-    },
-    {
-      src: "https://images.unsplash.com/photo-1500964757637-c85e8a162699?auto=format&fit=crop&w=900&q=80",
-      alt: "Amanecer entre montañas de Montebello",
-    },
-    {
-      src: "https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=900&q=80",
-      alt: "Terraza con vista al bosque",
-    },
-    {
-      src: "https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&w=1200&q=80",
-      alt: "Senderos del Parque Nacional Lagunas de Montebello",
-      span: "md:col-span-2",
-    },
+  // 👉 Reemplaza cada item con la foto real correspondiente.
+  const slots = [
+    { label: "Fachada de las cabañas", span: "md:col-span-2 md:row-span-2" },
+    { label: "Interior de cabaña" },
+    { label: "Cama / habitación" },
+    { label: "Baño" },
+    { label: "Terraza o balcón" },
+    { label: "Vista real al lago", span: "md:col-span-2" },
+    { label: "Restaurante o comedor" },
+    { label: "Camino de llegada" },
+    { label: "Actividades / paisaje cercano" },
   ];
 
   return (
-    <section className="py-20 md:py-28">
+    <section id="galeria" className="py-20 md:py-28">
       <div className="container-x">
         <div className="max-w-2xl">
           <span className="text-xs font-semibold uppercase tracking-[0.18em] text-lake">
@@ -612,37 +686,57 @@ function Gallery() {
           <h2 className="mt-3 font-display text-3xl font-bold leading-tight text-lake-deep sm:text-4xl md:text-5xl">
             Momentos en Cinco Lagos
           </h2>
+          <p className="mt-4 text-base text-foreground/70 md:text-lg">
+            Las fotos reales del lugar ayudan a elegir mejor tu cabaña.
+            Escríbenos si quieres ver disponibilidad actual.
+          </p>
         </div>
 
-        <div className="mt-10 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4 md:auto-rows-[200px]">
-          {images.map((img, i) => (
+        <div className="mt-10 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4 md:auto-rows-[180px]">
+          {slots.map((s, i) => (
             <div
               key={i}
-              className={`relative overflow-hidden rounded-2xl group ${img.span ?? ""}`}
+              className={`relative overflow-hidden rounded-2xl border-2 border-dashed border-lake/30 bg-sand ${
+                s.span ?? ""
+              }`}
             >
-              <img
-                src={img.src}
-                alt={img.alt}
-                loading="lazy"
-                className="h-full w-full object-cover transition duration-700 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-lake-deep/40 to-transparent opacity-0 transition group-hover:opacity-100" />
+              <div className="absolute inset-0 grid place-items-center p-4 text-center">
+                <div>
+                  <span className="mx-auto grid h-10 w-10 place-items-center rounded-full bg-lake-deep/10 text-lake-deep">
+                    <Camera className="h-5 w-5" />
+                  </span>
+                  <div className="mt-2 text-xs font-semibold uppercase tracking-wide text-lake-deep">
+                    {s.label}
+                  </div>
+                  <div className="mt-1 text-[11px] text-muted-foreground">
+                    Reemplazar con foto real
+                  </div>
+                </div>
+              </div>
             </div>
           ))}
         </div>
 
-        <p className="mt-6 text-center text-sm text-muted-foreground">
-          Inspírate también en nuestro{" "}
+        <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+          <a
+            href={waLink("Hola, ¿me pueden compartir fotos actuales y disponibilidad?")}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-whatsapp px-6 py-3 text-sm font-semibold text-white transition hover:bg-whatsapp-dark min-h-12"
+          >
+            <MessageCircle className="h-4 w-4" />
+            Pedir fotos por WhatsApp
+          </a>
           <a
             href={INSTAGRAM_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="font-medium text-lake-deep underline-offset-4 hover:underline"
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-border bg-warm-white px-6 py-3 text-sm font-semibold text-lake-deep transition hover:border-lake-deep min-h-12"
           >
-            Instagram @5lagosmontebello
+            <Instagram className="h-4 w-4" />
+            Ver Instagram
           </a>
-          .
-        </p>
+        </div>
       </div>
     </section>
   );
@@ -652,21 +746,6 @@ function Gallery() {
 // LOCATION
 // ============================================================
 function Location() {
-  const routes = [
-    {
-      title: "Desde Comitán",
-      text: "Tomar rumbo a La Trinitaria y seguir señalamientos hacia Lagunas de Montebello.",
-    },
-    {
-      title: "Desde San Cristóbal de Las Casas",
-      text: "Salir hacia Comitán, continuar a La Trinitaria y después al Parque Nacional.",
-    },
-    {
-      title: "Transporte público",
-      text: "Opciones desde Comitán hacia la zona de lagos y uso de mototaxis locales.",
-    },
-  ];
-
   return (
     <section id="ubicacion" className="bg-sand py-20 md:py-28">
       <div className="container-x">
@@ -685,27 +764,69 @@ function Location() {
 
         <div className="mt-12 grid gap-8 lg:grid-cols-2 lg:gap-12">
           <div className="space-y-5">
-            {routes.map((r) => (
-              <div
-                key={r.title}
-                className="rounded-2xl border border-border bg-warm-white p-6 shadow-sm"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="grid h-10 w-10 place-items-center rounded-full bg-lake-deep text-warm-white">
-                    <Compass className="h-5 w-5" />
-                  </span>
-                  <h3 className="font-display text-xl font-bold text-lake-deep">{r.title}</h3>
-                </div>
-                <p className="mt-3 text-sm leading-relaxed text-foreground/75 md:text-base">
-                  {r.text}
-                </p>
+            <div className="rounded-2xl border border-border bg-warm-white p-6 shadow-sm">
+              <div className="flex items-center gap-3">
+                <span className="grid h-10 w-10 place-items-center rounded-full bg-lake-deep text-warm-white">
+                  <Download className="h-5 w-5" />
+                </span>
+                <h3 className="font-display text-xl font-bold text-lake-deep">
+                  Descarga el mapa antes de llegar
+                </h3>
               </div>
-            ))}
+              <p className="mt-3 text-sm leading-relaxed text-foreground/75 md:text-base">
+                Te recomendamos descargar el mapa antes de llegar, ya que la
+                señal puede variar dentro del parque.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-border bg-warm-white p-6 shadow-sm">
+              <div className="flex items-center gap-3">
+                <span className="grid h-10 w-10 place-items-center rounded-full bg-lake-deep text-warm-white">
+                  <Banknote className="h-5 w-5" />
+                </span>
+                <h3 className="font-display text-xl font-bold text-lake-deep">
+                  Lleva efectivo
+                </h3>
+              </div>
+              <p className="mt-3 text-sm leading-relaxed text-foreground/75 md:text-base">
+                En la zona puede no haber cajeros cercanos ni terminal bancaria
+                disponible.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-border bg-warm-white p-6 shadow-sm">
+              <div className="flex items-center gap-3">
+                <span className="grid h-10 w-10 place-items-center rounded-full bg-lake-deep text-warm-white">
+                  <Compass className="h-5 w-5" />
+                </span>
+                <h3 className="font-display text-xl font-bold text-lake-deep">
+                  Rutas recomendadas
+                </h3>
+              </div>
+              <ul className="mt-3 space-y-2 text-sm text-foreground/75 md:text-base">
+                <li>
+                  <strong className="text-lake-deep">Desde Comitán:</strong>{" "}
+                  rumbo a La Trinitaria y señalamientos a Lagunas de Montebello.
+                </li>
+                <li>
+                  <strong className="text-lake-deep">
+                    Desde San Cristóbal:
+                  </strong>{" "}
+                  salida hacia Comitán y luego al parque nacional.
+                </li>
+                <li>
+                  <strong className="text-lake-deep">
+                    Transporte público:
+                  </strong>{" "}
+                  opciones desde Comitán hasta la zona de lagos.
+                </li>
+              </ul>
+            </div>
           </div>
 
           <div className="flex flex-col overflow-hidden rounded-2xl border border-border bg-warm-white shadow-sm">
             <div className="relative flex-1 min-h-[320px] bg-lake-deep/5">
-              {/* Map placeholder — REPLACE with embedded Google Map iframe if desired */}
+              {/* 👉 Opcional: reemplazar con <iframe> embebido de Google Maps */}
               <div
                 className="absolute inset-0 bg-cover bg-center opacity-90"
                 style={{
@@ -720,7 +841,7 @@ function Location() {
                 </span>
               </div>
             </div>
-            <div className="p-6">
+            <div className="space-y-3 p-6">
               <a
                 href={GOOGLE_MAPS_URL}
                 target="_blank"
@@ -730,6 +851,12 @@ function Location() {
                 <Map className="h-5 w-5" />
                 Abrir ubicación en Google Maps
               </a>
+              <p className="text-center text-xs text-muted-foreground">
+                👉 Pega aquí el link real:{" "}
+                <code className="rounded bg-sand px-1.5 py-0.5 text-[11px]">
+                  GOOGLE_MAPS_URL
+                </code>
+              </p>
             </div>
           </div>
         </div>
@@ -741,7 +868,15 @@ function Location() {
 // ============================================================
 // FAQ
 // ============================================================
-function FAQItem({ q, a, defaultOpen = false }: { q: string; a: string; defaultOpen?: boolean }) {
+function FAQItem({
+  q,
+  a,
+  defaultOpen = false,
+}: {
+  q: string;
+  a: string;
+  defaultOpen?: boolean;
+}) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div className="border-b border-border last:border-0">
@@ -751,7 +886,9 @@ function FAQItem({ q, a, defaultOpen = false }: { q: string; a: string; defaultO
         className="flex w-full items-center justify-between gap-4 py-5 text-left min-h-12"
         aria-expanded={open}
       >
-        <span className="font-display text-lg font-semibold text-lake-deep md:text-xl">{q}</span>
+        <span className="font-display text-base font-semibold text-lake-deep md:text-lg">
+          {q}
+        </span>
         <span
           className={`grid h-9 w-9 shrink-0 place-items-center rounded-full bg-secondary text-lake-deep transition-transform ${
             open ? "rotate-180" : ""
@@ -766,7 +903,9 @@ function FAQItem({ q, a, defaultOpen = false }: { q: string; a: string; defaultO
         }`}
       >
         <div className="overflow-hidden">
-          <p className="text-sm leading-relaxed text-foreground/75 md:text-base">{a}</p>
+          <p className="text-sm leading-relaxed text-foreground/75 md:text-base">
+            {a}
+          </p>
         </div>
       </div>
     </div>
@@ -777,31 +916,59 @@ function FAQ() {
   const items = [
     {
       q: "¿Dónde están ubicadas las cabañas?",
-      a: "Estamos en Carretera a Cinco Lagos Km 2, justo frente al lago, en la comunidad de Santiago, Chiapas, dentro del entorno del Parque Nacional.",
+      a: "En Carretera a Cinco Lagos Km 2, frente al lago, en Santiago, Chiapas, dentro del entorno del Parque Nacional Lagunas de Montebello.",
     },
     {
       q: "¿Cómo puedo reservar?",
-      a: "Puedes reservar directamente haciendo clic en nuestros botones de WhatsApp. Te confirmaremos disponibilidad, tarifa y el proceso de depósito/transferencia.",
+      a: "La reserva se realiza directamente por WhatsApp. Te confirmamos disponibilidad, tarifa y método de depósito o transferencia.",
+    },
+    {
+      q: "¿Qué datos necesito enviar para cotizar?",
+      a: "Fecha de llegada, fecha de salida y número de personas. Con eso podemos darte una cotización exacta.",
     },
     {
       q: "¿Hay internet o señal celular?",
-      a: "Al ser una zona natural y boscosa, la señal es variable. Contamos con WiFi intermitente en áreas comunes. Recomendamos descargar mapas e información importante previamente.",
+      a: "La señal es variable porque estamos dentro de una zona natural. Recomendamos descargar mapas e información importante antes de llegar.",
     },
     {
-      q: "¿Hay estacionamiento y restaurante?",
-      a: "Sí, contamos con estacionamiento privado para huéspedes y servicio de restaurante (se sugiere consultar horarios y disponibilidad al hacer check-in).",
+      q: "¿Hay estacionamiento?",
+      a: "Consulta disponibilidad o política vigente antes de reservar.",
+    },
+    {
+      q: "¿Hay restaurante?",
+      a: "Consulta disponibilidad o política vigente antes de reservar.",
+    },
+    {
+      q: "¿Aceptan mascotas?",
+      a: "Consulta disponibilidad o política vigente antes de reservar.",
+    },
+    {
+      q: "¿Hay agua caliente?",
+      a: "Consulta disponibilidad o política vigente antes de reservar.",
     },
     {
       q: "¿Se puede nadar en los lagos?",
-      a: "Solo en las zonas específicamente permitidas por las autoridades del Parque Nacional y siguiendo las indicaciones de los guías locales. Está prohibido el uso de bloqueadores químicos en el agua.",
+      a: "Solo en las zonas permitidas por las autoridades del Parque Nacional y siguiendo las indicaciones de los guías locales. Está prohibido el uso de bloqueadores químicos en el agua.",
     },
     {
       q: "¿Qué ropa debo llevar?",
-      a: "Recomendamos chamarra ligera o impermeable, calzado cómodo para senderismo, repelente de insectos amigable con el ambiente y efectivo (no hay cajeros en la zona).",
+      a: "Ropa cómoda y abrigadora, chamarra ligera o impermeable, calzado para senderismo, repelente amigable con el ambiente y efectivo.",
     },
     {
-      q: "¿Aceptan mascotas / Emiten factura?",
-      a: "Por favor, consulta directamente nuestras políticas vigentes y disponibilidad de comprobantes fiscales vía WhatsApp antes de consolidar tu reserva.",
+      q: "¿Aceptan pago por transferencia?",
+      a: "Consulta disponibilidad o política vigente antes de reservar.",
+    },
+    {
+      q: "¿Emiten factura?",
+      a: "Consulta disponibilidad o política vigente antes de reservar.",
+    },
+    {
+      q: "¿Cuál es el horario de entrada y salida?",
+      a: "Consulta disponibilidad o política vigente antes de reservar.",
+    },
+    {
+      q: "¿Cuál es la política de cancelación?",
+      a: "Consulta disponibilidad o política vigente antes de reservar.",
     },
   ];
 
@@ -816,10 +983,11 @@ function FAQ() {
             ¿Tienes dudas? Aquí te ayudamos
           </h2>
           <p className="mt-4 text-base text-foreground/70">
-            Si no encuentras tu respuesta, escríbenos por WhatsApp y con gusto te orientamos.
+            Si no encuentras tu respuesta, escríbenos por WhatsApp y con gusto
+            te orientamos.
           </p>
           <a
-            href={waLink("Hola, tengo una pregunta sobre Cabañas 5 Lagos.")}
+            href={waLink("Hola, tengo una pregunta sobre Cabañas 5 Lagos de Montebello.")}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-6 inline-flex items-center gap-2 rounded-full bg-whatsapp px-6 py-3 text-sm font-semibold text-white transition hover:bg-whatsapp-dark min-h-12"
@@ -855,14 +1023,16 @@ function FinalCTA() {
       <div className="absolute inset-0 bg-lake-deep/80" />
       <div className="relative container-x py-24 md:py-32 text-center text-warm-white">
         <h2 className="mx-auto max-w-3xl font-display text-3xl font-bold leading-tight sm:text-4xl md:text-6xl">
-          Reserva tu descanso frente a <span className="text-turquoise">Cinco Lagos</span>
+          Reserva tu descanso frente a{" "}
+          <span className="text-turquoise">Cinco Lagos</span>
         </h2>
         <p className="mx-auto mt-5 max-w-2xl text-base text-warm-white/85 md:text-lg">
-          Escríbenos y cotiza tu cabaña según fecha, número de personas y tipo de estancia.
+          Escríbenos por WhatsApp con tu fecha de llegada, salida y número de
+          personas para enviarte una cotización personalizada.
         </p>
         <div className="mt-10 flex justify-center">
           <a
-            href={waLink("Hola, quiero cotizar una estancia en Cabañas 5 Lagos.")}
+            href={waLink()}
             target="_blank"
             rel="noopener noreferrer"
             className="group relative inline-flex items-center gap-3 rounded-full bg-whatsapp px-8 py-5 text-base font-bold text-white shadow-2xl transition hover:bg-whatsapp-dark sm:text-lg min-h-12"
@@ -890,16 +1060,27 @@ function Footer() {
             <span className="grid h-9 w-9 place-items-center rounded-full bg-turquoise text-lake-deep">
               <Trees className="h-5 w-5" />
             </span>
-            <span className="font-display text-lg font-bold">Cabañas 5 Lagos</span>
+            <span className="font-display text-lg font-bold">
+              Cabañas 5 Lagos de Montebello
+            </span>
           </div>
           <p className="mt-4 text-sm leading-relaxed text-warm-white/75">
-            Refugio natural frente a Cinco Lagos, dentro del Parque Nacional Lagunas de
-            Montebello, Chiapas.
+            Refugio natural frente a Cinco Lagos, dentro del Parque Nacional
+            Lagunas de Montebello, Chiapas.
           </p>
           <p className="mt-4 flex items-start gap-2 text-sm text-warm-white/75">
             <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-turquoise" />
             {ADDRESS}
           </p>
+          <a
+            href={GOOGLE_MAPS_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-turquoise hover:underline"
+          >
+            <Map className="h-4 w-4" />
+            Ver en Google Maps
+          </a>
         </div>
 
         <div>
@@ -909,11 +1090,11 @@ function Footer() {
           <ul className="mt-4 space-y-2.5 text-sm">
             {[
               ["#inicio", "Inicio"],
+              ["#por-que", "Por qué hospedarte"],
               ["#cabanas", "Cabañas"],
-              ["#amenidades", "Amenidades"],
-              ["#experiencias", "Experiencias"],
+              ["#galeria", "Galería"],
               ["#ubicacion", "Ubicación"],
-              ["#faq", "FAQ"],
+              ["#faq", "Preguntas frecuentes"],
             ].map(([h, l]) => (
               <li key={h}>
                 <a href={h} className="text-warm-white/80 hover:text-turquoise">
@@ -928,52 +1109,74 @@ function Footer() {
           <div className="text-xs font-semibold uppercase tracking-[0.18em] text-turquoise">
             Contacto & redes
           </div>
-          <div className="mt-4 flex gap-3">
+          <div className="mt-4 space-y-2.5 text-sm text-warm-white/80">
             <a
-              href={INSTAGRAM_URL}
+              href={waLink()}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Instagram"
-              className="grid h-11 w-11 place-items-center rounded-full border border-white/20 transition hover:border-turquoise hover:text-turquoise"
+              className="flex items-center gap-2 hover:text-turquoise"
             >
-              <Instagram className="h-5 w-5" />
+              <MessageCircle className="h-4 w-4 text-turquoise" />
+              WhatsApp:{" "}
+              <span className="font-medium">
+                {PHONE_DISPLAY || "[Agregar número]"}
+              </span>
+            </a>
+            <a
+              href={EMAIL ? `mailto:${EMAIL}` : "#"}
+              className="flex items-center gap-2 hover:text-turquoise"
+            >
+              <Mail className="h-4 w-4 text-turquoise" />
+              Correo:{" "}
+              <span className="font-medium">{EMAIL || "[Agregar correo]"}</span>
             </a>
             <a
               href={FACEBOOK_URL}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Facebook"
-              className="grid h-11 w-11 place-items-center rounded-full border border-white/20 transition hover:border-turquoise hover:text-turquoise"
+              className="flex items-center gap-2 hover:text-turquoise"
             >
-              <Facebook className="h-5 w-5" />
+              <Facebook className="h-4 w-4 text-turquoise" />
+              Facebook:{" "}
+              <span className="font-medium">
+                {FACEBOOK_URL !== "#" ? FACEBOOK_URL : "[Agregar enlace oficial]"}
+              </span>
             </a>
             <a
-              href={waLink("Hola, quiero información.")}
+              href={INSTAGRAM_URL}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="WhatsApp"
-              className="grid h-11 w-11 place-items-center rounded-full border border-white/20 transition hover:border-turquoise hover:text-turquoise"
+              className="flex items-center gap-2 hover:text-turquoise"
             >
-              <MessageCircle className="h-5 w-5" />
+              <Instagram className="h-4 w-4 text-turquoise" />
+              Instagram: <span className="font-medium">@5lagosmontebello</span>
             </a>
-          </div>
-          <div className="mt-5 space-y-2 text-sm text-warm-white/75">
-            <div className="flex items-center gap-2">
-              <Phone className="h-4 w-4 text-turquoise" />
-              <span>WhatsApp: por confirmar</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Mail className="h-4 w-4 text-turquoise" />
-              <span>Correo: por confirmar</span>
-            </div>
+            <a
+              href={GOOGLE_MAPS_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 hover:text-turquoise"
+            >
+              <Map className="h-4 w-4 text-turquoise" />
+              Google Maps: <span className="font-medium">Abrir ubicación</span>
+            </a>
+            {PHONE_DISPLAY && (
+              <div className="flex items-center gap-2">
+                <Phone className="h-4 w-4 text-turquoise" />
+                <span>{PHONE_DISPLAY}</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
       <div className="border-t border-white/10">
         <div className="container-x flex flex-col gap-3 py-6 text-xs text-warm-white/60 md:flex-row md:items-center md:justify-between">
-          <div>© {year} Cabañas 5 Lagos de Montebello. Todos los derechos reservados.</div>
+          <div>
+            © {year} Cabañas 5 Lagos de Montebello. Todos los derechos
+            reservados.
+          </div>
           <div className="max-w-xl md:text-right">
-            Sitio informativo. Todas las tarifas, servicios y disponibilidad están sujetos a
+            Todas las tarifas, servicios y disponibilidad están sujetos a
             confirmación directa vía WhatsApp.
           </div>
         </div>
@@ -988,7 +1191,7 @@ function Footer() {
 function FloatingWhatsApp() {
   return (
     <a
-      href={waLink("Hola, quiero información sobre Cabañas 5 Lagos.")}
+      href={waLink()}
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Reservar por WhatsApp"
