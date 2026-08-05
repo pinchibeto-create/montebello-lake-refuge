@@ -28,9 +28,17 @@ Se eliminan las secciones que no forman parte de esta estructura (razones, exper
 
 ## Datos y contenido
 
+- Todo el contenido (marca, copy, cabañas, servicios, dirección, CTAs) se toma literalmente del JSON entregado, en es-MX.
 - Sin precios, teléfonos ni horarios inventados; todo CTA lleva a "Consulta disponibilidad".
 - Nombres de cabañas, capacidades, descripciones, servicios y dirección exactamente como fueron entregados.
 - Fotografías: se mantienen imágenes de referencia de stock (lago, bosque, interiores de madera) como marcadores, fáciles de sustituir por fotos reales del complejo.
+
+## Marca y medios subidos
+
+- El logo **CINCO LAGOS** se integra como asset del proyecto y se usa en el header y el footer (versión blanca sobre verde oscuro), reemplazando el texto plano de la marca.
+- Se usa el mismo logo, recortado en cuadrado, como favicon del sitio.
+- El video `cinco_lagos_reflejo_en_el_agua.mp4` se integra como fondo del hero (autoplay, mudo, en bucle, `playsInline`) con overlay verde oscuro y un póster estático de respaldo; en pantallas pequeñas o con `prefers-reduced-motion` se muestra solo la imagen para no consumir datos.
+
 
 ## Detalles técnicos
 
