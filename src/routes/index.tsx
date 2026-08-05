@@ -95,7 +95,7 @@ function LandingPage() {
         />
         <div
           aria-hidden
-          className="absolute inset-0 bg-gradient-to-t from-forest-deep via-forest-deep/70 to-forest-deep/40"
+          className="absolute inset-0 bg-gradient-to-t from-forest-deep via-forest-deep/55 to-forest-deep/15"
         />
         <div className="container-x relative pb-16 pt-28 md:pb-24">
           <p className="text-xs uppercase tracking-[0.3em] text-turquoise">

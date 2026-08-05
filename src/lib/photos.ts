@@ -2,7 +2,7 @@
 export type Photo = { url: string; alt: string; w: number; h: number };
 
 export const photos = {
-  p01: { url: "/__l5e/assets-v1/4066ff62-96b0-4b0a-8bff-70381d871fd7/01_hero_vista_lago_terraza_sillas.png", alt: "Vista al lago desde terraza con dos sillas de madera. Usar como imagen principal del hero.", w: 1285, h: 1663 },
+  p01: { url: "/__l5e/assets-v1/920fe177-a346-488c-9699-26dbb40eeefc/01_hero_vista_lago.png", alt: "Vista al lago desde la terraza, con dos sillas de madera frente al agua turquesa.", w: 1285, h: 1300 },
   p02: { url: "/__l5e/assets-v1/bcf772b8-bdb9-4f14-a619-359b94bb0439/02_cabanas_pequenas_exterior_colores_aframe.png", alt: "Exterior de cabañas pequeñas tipo A-frame con fachadas de colores.", w: 1285, h: 735 },
   p03: { url: "/__l5e/assets-v1/0cc2cdf9-8954-4097-a797-ccb7a75f89b6/03_cabanas_pequenas_interior_dos_camas_matrimoniales.png", alt: "Interior con dos camas matrimoniales en cabaña pequeña.", w: 365, h: 180 },
   p04: { url: "/__l5e/assets-v1/e16da828-9771-4dca-ab4b-5c3f32593f8b/04_cabanas_pequenas_interior_puerta_madera_cama.png", alt: "Interior de madera con cama, puerta y ventanas.", w: 365, h: 180 },
