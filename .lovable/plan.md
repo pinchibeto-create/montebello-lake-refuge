@@ -37,6 +37,13 @@ Rediseño completo de la landing con estilo editorial (verde bosque profundo, te
 - Se corrige el error actual de runtime de los íconos (`lucide-react`) usando importaciones nombradas válidas.
 - Sin precios, teléfonos ni horarios inventados: todo CTA lleva a "Consulta disponibilidad" por WhatsApp.
 
+## Contacto y redes
+
+- WhatsApp de reservaciones: **961 255 9561** (enlace `https://wa.me/529612559561` con mensaje prellenado, p. ej. "Hola, quiero consultar disponibilidad en Cinco Lagos").
+- Facebook: `https://www.facebook.com/CabanasMirador5Lagos`, con ícono en el header y el footer.
+- Ambos valores viven como constantes editables en un solo archivo de configuración.
+
 ## Pendiente por confirmar
 
-- Número de WhatsApp real y enlace de Google Maps (mientras tanto quedan como constantes editables en un solo archivo).
+- Enlace exacto de Google Maps de la ubicación (queda como constante editable hasta que lo compartas).
+
