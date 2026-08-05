@@ -39,6 +39,8 @@
   --color-lake-deep: var(--lake-deep);
   --color-turquoise: var(--turquoise);
   --color-forest: var(--forest);
+  --color-forest-deep: var(--forest-deep);
+  --color-forest-soft: var(--forest-soft);
   --color-sand: var(--sand);
   --color-warm-white: var(--warm-white);
   --color-whatsapp: var(--whatsapp);
@@ -46,39 +48,42 @@
 }
 
 :root {
-  --radius: 0.75rem;
+  --radius: 0.5rem;
 
-  /* Brand */
-  --lake-deep: oklch(0.36 0.07 220);          /* #0B4F6C */
-  --lake: oklch(0.46 0.10 220);
-  --turquoise: oklch(0.74 0.14 220);          /* #01BAEF-ish */
-  --forest: oklch(0.36 0.05 200);             /* deep emerald/teal */
-  --sand: oklch(0.96 0.012 80);               /* #F4F1EA */
-  --warm-white: oklch(0.985 0.003 80);        /* #FAFAFA */
-  --whatsapp: oklch(0.72 0.17 145);
-  --whatsapp-dark: oklch(0.60 0.18 145);
+  /* Marca — editorial: verde bosque profundo, blanco, turquesa */
+  --forest-deep: oklch(0.24 0.045 165);   /* fondo principal */
+  --forest: oklch(0.30 0.052 165);        /* superficies */
+  --forest-soft: oklch(0.36 0.048 165);   /* bordes / hover */
+  --lake-deep: oklch(0.34 0.070 220);
+  --lake: oklch(0.46 0.100 220);
+  --turquoise: oklch(0.80 0.135 185);     /* acento brillante */
+  --sand: oklch(0.93 0.020 80);
+  --warm-white: oklch(0.985 0.004 80);
+  --whatsapp: oklch(0.74 0.170 145);
+  --whatsapp-dark: oklch(0.62 0.180 145);
 
-  /* Semantic */
-  --background: var(--warm-white);
-  --foreground: oklch(0.20 0.02 240);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.20 0.02 240);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.20 0.02 240);
-  --primary: var(--lake-deep);
-  --primary-foreground: oklch(0.985 0.003 80);
-  --secondary: var(--sand);
-  --secondary-foreground: var(--lake-deep);
-  --muted: oklch(0.96 0.008 240);
-  --muted-foreground: oklch(0.48 0.02 240);
+  /* Semántico */
+  --background: var(--forest-deep);
+  --foreground: var(--warm-white);
+  --card: var(--forest);
+  --card-foreground: var(--warm-white);
+  --popover: var(--forest);
+  --popover-foreground: var(--warm-white);
+  --primary: var(--turquoise);
+  --primary-foreground: oklch(0.20 0.04 165);
+  --secondary: var(--forest-soft);
+  --secondary-foreground: var(--warm-white);
+  --muted: var(--forest);
+  --muted-foreground: oklch(0.82 0.015 165);
   --accent: var(--turquoise);
-  --accent-foreground: oklch(0.18 0.04 240);
+  --accent-foreground: oklch(0.20 0.04 165);
   --destructive: oklch(0.62 0.20 28);
-  --destructive-foreground: oklch(0.985 0.003 80);
-  --border: oklch(0.90 0.013 240);
-  --input: oklch(0.92 0.013 240);
+  --destructive-foreground: var(--warm-white);
+  --border: color-mix(in oklab, var(--warm-white) 16%, transparent);
+  --input: color-mix(in oklab, var(--warm-white) 20%, transparent);
   --ring: var(--turquoise);
 }
+
 
 @layer base {
   * {
