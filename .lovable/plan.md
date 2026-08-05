@@ -1,50 +1,42 @@
-# Rediseño editorial inmersivo — CINCO LAGOS
+# Cinco Lagos — rediseño editorial con fotos reales
 
-Reconstruir la landing con una identidad visual nueva: revista turística premium, fondo verde oscuro casi negro, tipografía blanca grande, acentos turquesa y fotografía como protagonista.
+Rediseño completo de la landing con estilo editorial (verde bosque profundo, textos grandes en blanco, acentos turquesa) usando las 28 fotos reales del paquete y el logo de la marca.
 
-## Identidad visual
+## Estructura de la página (8 secciones)
 
-- Fondo base verde oscuro profundo (casi negro verdoso), superficies de tarjeta ligeramente más claras.
-- Acento turquesa brillante para etiquetas, separadores delgados, botones y detalles.
-- Texto principal blanco, secundario gris claro.
-- Fotografías siempre con overlay oscuro y degradado para legibilidad.
-- Mucho aire visual, encabezados grandes y limpios, botones suavemente redondeados.
-- Mobile-first, animaciones suaves de entrada al hacer scroll.
+1. **Hero a pantalla completa** — foto `01_hero_vista_lago_terraza_sillas.png` (vertical, alta resolución) con overlay verde oscuro, logo, título grande y "La vista es parte del viaje." + CTA "Consulta disponibilidad".
+2. **Intro editorial** — párrafo de texto grande, centrado, sobre fondo verde profundo.
+3. **Cuatro formas de hospedarte** — un bloque por tipo de cabaña, cada uno con su foto hero y galería de apoyo:
+   - Cabañas pequeñas (5 pax): hero `02`, apoyo `03`–`08`
+   - Cabaña de cristal (2 pax): hero `09`, apoyo `10`–`12`
+   - Cabaña grande (8 pax): hero `13`, apoyo `14`–`18`
+   - Cabaña mayor (8 pax): hero `19`, apoyo `20`–`24`
+4. **Galería inmersiva** — mosaico con las mejores tomas de lago, terrazas y baños privados (`25`–`28` más selección de las anteriores), con lightbox al hacer clic.
+5. **Servicios** — íconos y lista (baño privado, agua caliente, vista al lago, estacionamiento, etc.).
+6. **Ubicación** — Lagunas de Montebello, Chiapas, con texto de ruta y botón a Google Maps.
+7. **Visita responsable** — nota breve sobre cuidar el entorno natural.
+8. **CTA final** — bloque turquesa con "Consulta disponibilidad" por WhatsApp; el QR (`29`) se muestra como opción secundaria para escanear desde móvil.
 
-## Estructura (reemplaza la actual)
+## Manejo de imágenes
 
-1. **Menú fijo transparente** que se oscurece al hacer scroll: Inicio, Cabañas, Galería, Servicios, Ubicación, Disponibilidad + botón destacado "Consulta disponibilidad". Menú lateral en móvil.
-2. **Hero pantalla completa** con foto del lago desde terraza, marca arriba (CINCO LAGOS / CABAÑAS · MONTEBELLO · CHIAPAS), eyebrow "A ORILLAS DE CINCO LAGOS", título "La vista es parte del viaje.", subtítulo "Cabañas para detener el tiempo entre agua y bosque.", botones "Consulta disponibilidad" y "Ver cabañas". Todo alineado a la izquierda.
-3. **Introducción** en verde oscuro con el texto de "A orillas de Cinco Lagos" y frase destacada "Elige tu forma de mirar el lago."
-4. **Cuatro formas de hospedarte** — 4 bloques con imagen, capacidad, nombre, descripción, servicios (baño privado con agua caliente, Wi-Fi) y texto de apoyo, con los nombres y datos exactos entregados. Incluye botón "Consulta disponibilidad".
-5. **Galería inmersiva "La vista también se habita"** — recorrido visual asimétrico (imágenes grandes + miniaturas) con bordes sutiles: vista desde terraza, interiores de madera, camas, baños, exteriores, cabaña de cristal, vistas al lago, terrazas.
-6. **Servicios** — solo Wi-Fi, Estacionamiento, Restaurante, Vista al lago, Baño privado con agua caliente. Nota "Servicios sujetos a disponibilidad."
-7. **Encuéntranos** — dirección exacta tal cual, texto de entorno natural, botón "Cómo llegar" y espacio reservado para mapa (marcador editable, sin coordenadas inventadas).
-8. **Franja de visita responsable** con los tres textos indicados, incluido el aviso pequeño de julio de 2026.
-9. **CTA final** con fondo fotográfico: "Elige tu forma de mirar el lago." + botones "Consulta disponibilidad" y "Ver opciones de hospedaje".
-10. **Footer** sobrio con marca, ubicación, redes existentes y campos editables para los datos que faltan.
+- Las 29 imágenes se suben al CDN de Lovable como assets del proyecto (no quedan binarios en el repo) y se referencian por sus punteros.
+- Se respetan los nombres del manifiesto; cada imagen recibe un `alt` en español tomado de la descripción del manifiesto.
+- Las fotos de apoyo son de baja resolución (365×180 / 365×273), así que se usan solo en tamaños pequeños: miniaturas, mosaico y galería, nunca a ancho completo. Las de 1285 px de ancho se usan como heroes de sección.
+- Carga diferida (`lazy`) en todo lo que no sea el hero, para que la página abra rápido.
 
-Se eliminan las secciones que no forman parte de esta estructura (razones, experiencias, FAQ, testimonios) para mantener el tono editorial y no saturar.
+## Marca
 
-## Datos y contenido
-
-- Todo el contenido (marca, copy, cabañas, servicios, dirección, CTAs) se toma literalmente del JSON entregado, en es-MX.
-- Sin precios, teléfonos ni horarios inventados; todo CTA lleva a "Consulta disponibilidad".
-- Nombres de cabañas, capacidades, descripciones, servicios y dirección exactamente como fueron entregados.
-- Fotografías: se mantienen imágenes de referencia de stock (lago, bosque, interiores de madera) como marcadores, fáciles de sustituir por fotos reales del complejo.
-
-## Marca y medios subidos
-
-- El logo **CINCO LAGOS** se integra como asset del proyecto y se usa en el header y el footer (versión blanca sobre verde oscuro), reemplazando el texto plano de la marca.
-- Se usa el mismo logo, recortado en cuadrado, como favicon del sitio.
-- El video `cinco_lagos_reflejo_en_el_agua.mp4` se integra como fondo del hero (autoplay, mudo, en bucle, `playsInline`) con overlay verde oscuro y un póster estático de respaldo; en pantallas pequeñas o con `prefers-reduced-motion` se muestra solo la imagen para no consumir datos.
-
+- Logo **CINCO LAGOS** en header y footer (versión blanca sobre verde oscuro) y como favicon del sitio.
+- Tipografía editorial: titulares serif de alto contraste, cuerpo sans limpio.
 
 ## Detalles técnicos
 
-- Reescribir `src/routes/index.tsx` (una página, componentes internos pequeños: `Nav`, `Hero`, `Intro`, `Cabins`, `Gallery`, `Services`, `Location`, `Responsible`, `FinalCta`, `Footer`).
-- Actualizar tokens en `src/styles.css`: nuevos valores oscuros para `--background`, `--foreground`, superficies, borde turquesa y acento; utilidades para separador turquesa y overlays. Sin colores hardcodeados en componentes.
-- Constantes editables al inicio del archivo: `WHATSAPP_NUMBER`, `GOOGLE_MAPS_URL`, `MAP_EMBED_URL`, `EMAIL`, `FACEBOOK_URL`.
-- CTA "Consulta disponibilidad" apunta al enlace de WhatsApp con la constante editable; si aún no hay número, el botón queda claramente marcado en el código.
-- `head()` de la ruta actualizado: título, descripción, og/twitter con el nuevo concepto.
-- HTML semántico, un solo `<h1>`, alt descriptivos con palabras clave ("Cabañas Cinco Lagos", "Lagunas de Montebello").
+- Tokens de color en `src/styles.css` (verde bosque profundo de fondo, blanco de texto, turquesa de acento) — sin colores hardcodeados en componentes.
+- Reescritura de `src/routes/index.tsx` en secciones componentizadas bajo `src/components/`.
+- SEO por ruta: `head()` con título, descripción, `og:*` y `og:image` apuntando a la foto del hero.
+- Se corrige el error actual de runtime de los íconos (`lucide-react`) usando importaciones nombradas válidas.
+- Sin precios, teléfonos ni horarios inventados: todo CTA lleva a "Consulta disponibilidad" por WhatsApp.
+
+## Pendiente por confirmar
+
+- Número de WhatsApp real y enlace de Google Maps (mientras tanto quedan como constantes editables en un solo archivo).
