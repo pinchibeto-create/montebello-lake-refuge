@@ -128,6 +128,11 @@ function LandingPage() {
         </div>
       </section>
 
+      {/* 1b — Buscador de disponibilidad */}
+      <section id="disponibilidad" className="container-x relative z-10 -mt-8 md:-mt-20">
+        <AvailabilitySearch variant="hero" />
+      </section>
+
       {/* 2 — Intro editorial */}
       <section className="container-x py-20 text-center md:py-28">
         <p className="mx-auto max-w-3xl text-2xl leading-relaxed text-foreground/90 md:text-4xl md:leading-[1.35]">
