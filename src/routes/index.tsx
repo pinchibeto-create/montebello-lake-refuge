@@ -5,6 +5,7 @@ import { SITE, whatsappLink } from "@/lib/site";
 import { SiteHeader } from "@/components/SiteHeader";
 import { PhotoGrid } from "@/components/PhotoGallery";
 import { CabinBlock, cabins } from "@/components/CabinBlock";
+import { AvailabilitySearch } from "@/components/AvailabilitySearch";
 import { IconWhatsapp, IconFacebook, IconMapPin, IconArrow, IconLeaf, IconCheck } from "@/components/Icons";
 
 const TITLE = "Cinco Lagos — Cabañas en Montebello, Chiapas";
