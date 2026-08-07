@@ -163,6 +163,13 @@ function LandingPage() {
         </div>
       </section>
 
+      {/* 3b — Buscador repetido */}
+      <section className="container-x py-14 md:py-20">
+        <AvailabilitySearch variant="section" className="bg-forest" />
+      </section>
+
+
+
       {/* 4 — Galería inmersiva */}
       <section id="galeria" className="bg-forest py-20 md:py-28">
         <div className="container-x">
