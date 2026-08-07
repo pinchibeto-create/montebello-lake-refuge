@@ -66,3 +66,48 @@ export function IconLeaf({ className }: P) {
     </svg>
   );
 }
+
+export function IconCalendar({ className }: P) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden className={className}>
+      <rect x="3.5" y="5" width="17" height="15" rx="2" />
+      <path d="M3.5 10h17M8 3.5v3M16 3.5v3" />
+    </svg>
+  );
+}
+
+export function IconCabin({ className }: P) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden className={className}>
+      <path d="M3 11.5 12 4l9 7.5" />
+      <path d="M5.5 10.5V20h13v-9.5" />
+      <path d="M10 20v-4.5h4V20" />
+    </svg>
+  );
+}
+
+export function IconUsers({ className }: P) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden className={className}>
+      <circle cx="9" cy="8" r="3.2" />
+      <path d="M3 20c0-3.2 2.7-5.2 6-5.2s6 2 6 5.2" />
+      <path d="M16 5.4a3.2 3.2 0 0 1 0 6.2M17.5 14.4c2.1.6 3.5 2.3 3.5 4.6" />
+    </svg>
+  );
+}
+
+export function IconMinus({ className }: P) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden className={className}>
+      <path d="M5 12h14" />
+    </svg>
+  );
+}
+
+export function IconPlus({ className }: P) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden className={className}>
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  );
+}

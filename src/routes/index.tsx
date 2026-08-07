@@ -5,6 +5,7 @@ import { SITE, whatsappLink } from "@/lib/site";
 import { SiteHeader } from "@/components/SiteHeader";
 import { PhotoGrid } from "@/components/PhotoGallery";
 import { CabinBlock, cabins } from "@/components/CabinBlock";
+import { AvailabilitySearch } from "@/components/AvailabilitySearch";
 import { IconWhatsapp, IconFacebook, IconMapPin, IconArrow, IconLeaf, IconCheck } from "@/components/Icons";
 
 const TITLE = "Cinco Lagos — Cabañas en Montebello, Chiapas";
@@ -128,6 +129,11 @@ function LandingPage() {
         </div>
       </section>
 
+      {/* 1b — Buscador de disponibilidad */}
+      <section id="disponibilidad" className="container-x relative z-10 -mt-8 md:-mt-20">
+        <AvailabilitySearch variant="hero" />
+      </section>
+
       {/* 2 — Intro editorial */}
       <section className="container-x py-20 text-center md:py-28">
         <p className="mx-auto max-w-3xl text-2xl leading-relaxed text-foreground/90 md:text-4xl md:leading-[1.35]">
@@ -156,6 +162,13 @@ function LandingPage() {
           ))}
         </div>
       </section>
+
+      {/* 3b — Buscador repetido */}
+      <section className="container-x py-14 md:py-20">
+        <AvailabilitySearch variant="section" className="bg-forest" />
+      </section>
+
+
 
       {/* 4 — Galería inmersiva */}
       <section id="galeria" className="bg-forest py-20 md:py-28">

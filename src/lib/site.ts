@@ -17,3 +17,29 @@ export function whatsappLink(
 ) {
   return `https://wa.me/${SITE.whatsappNumber}?text=${encodeURIComponent(message)}`;
 }
+
+export type AvailabilityQuery = {
+  arrival: string;
+  departure: string;
+  cabin: string;
+  guests: number;
+};
+
+export function availabilityWhatsappLink({
+  arrival,
+  departure,
+  cabin,
+  guests,
+}: AvailabilityQuery) {
+  const mensaje = `Hola, quiero consultar disponibilidad en Cinco Lagos.
+
+Fecha de llegada: ${arrival}
+Fecha de salida: ${departure}
+Cabaña: ${cabin}
+Número de personas: ${guests}
+
+¿Me pueden confirmar si está disponible y compartirme más información para reservar?
+
+Gracias.`;
+  return `https://wa.me/${SITE.whatsappNumber}?text=${encodeURIComponent(mensaje)}`;
+}
