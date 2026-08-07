@@ -245,7 +245,7 @@ export function AvailabilitySearch({
           icon={<IconCabin className="h-4 w-4" />}
           label="Tipo de cabaña"
           error={errors.cabin}
-ấ        >
+>
           <Select value={cabinId} onValueChange={handleCabinChange}>
             <SelectTrigger className="h-auto w-full border-0 bg-transparent p-0 text-[15px] font-medium text-forest-deep shadow-none focus:ring-0 data-[placeholder]:text-forest-deep/45">
               <SelectValue placeholder="Elegir cabaña" />
