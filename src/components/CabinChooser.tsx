@@ -21,7 +21,7 @@ function CabinCard({
       aria-selected={active}
       aria-controls={`panel-${cabin.id}`}
       onClick={onSelect}
-      className={`group relative w-[78vw] shrink-0 snap-center overflow-hidden rounded-sm border text-left transition sm:w-auto ${
+      className={`group relative w-full overflow-hidden rounded-sm border text-left transition sm:w-auto ${
         active
           ? "border-turquoise bg-forest shadow-lg"
           : "border-border bg-forest/40 hover:border-turquoise/60 hover:bg-forest/70"
