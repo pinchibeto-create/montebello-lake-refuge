@@ -77,7 +77,7 @@ function CabinDetail({ cabin }: { cabin: Cabin }) {
       className="mt-8 border-t border-border pt-8 md:mt-12 md:pt-12"
     >
       <div className="grid gap-8 md:grid-cols-[1.15fr_1fr] md:gap-12">
-        <div>
+        <div className="min-w-0">
           <button
             type="button"
             onClick={() => setOpen(0)}
@@ -110,7 +110,7 @@ function CabinDetail({ cabin }: { cabin: Cabin }) {
           <p className="text-xs text-muted-foreground md:hidden">Desliza para ver más fotos →</p>
         </div>
 
-        <div>
+        <div className="min-w-0">
           <p className="text-xs uppercase tracking-[0.25em] text-turquoise">{cabin.capacity}</p>
           <h3 className="mt-3 text-3xl leading-tight md:text-4xl">{cabin.name}</h3>
           <p className="mt-3 text-lg font-semibold text-turquoise">
