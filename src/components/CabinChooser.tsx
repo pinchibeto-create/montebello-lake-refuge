@@ -21,7 +21,7 @@ function CabinCard({
       aria-selected={active}
       aria-controls={`panel-${cabin.id}`}
       onClick={onSelect}
-      className={`group relative w-[78vw] shrink-0 snap-center overflow-hidden rounded-sm border text-left transition sm:w-auto ${
+      className={`group relative w-full overflow-hidden rounded-sm border text-left transition sm:w-auto ${
         active
           ? "border-turquoise bg-forest shadow-lg"
           : "border-border bg-forest/40 hover:border-turquoise/60 hover:bg-forest/70"
@@ -151,12 +151,10 @@ export function CabinChooser() {
 
   return (
     <div>
-      <p className="text-xs text-muted-foreground md:hidden">Desliza para ver las opciones →</p>
-
       <div
         role="tablist"
         aria-label="Tipos de cabaña"
-        className="mt-3 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 [scrollbar-width:none] md:mt-0 md:grid md:grid-cols-4 md:overflow-visible md:pb-0 [&::-webkit-scrollbar]:hidden"
+        className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4"
       >
         {cabins.map((cabin) => (
           <CabinCard
