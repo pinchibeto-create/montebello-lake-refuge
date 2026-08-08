@@ -147,21 +147,18 @@ function LandingPage() {
       <section id="hospedaje" className="container-x pb-8">
         <header className="max-w-2xl">
           <p className="text-xs uppercase tracking-[0.25em] text-turquoise">Hospedaje</p>
-          <h2 className="mt-4 text-4xl leading-tight md:text-5xl">
-            Cuatro formas de hospedarte
-          </h2>
+          <h2 className="mt-4 text-4xl leading-tight md:text-5xl">Elige tu cabaña</h2>
           <p className="mt-4 text-base text-muted-foreground">
-            Cada cabaña tiene su propio carácter y su propia manera de mirar el
-            lago. Todas cuentan con baño privado.
+            Cuatro opciones frente al lago. Toca una para ver sus fotos, su
+            capacidad y sus características. Todas cuentan con baño privado.
           </p>
         </header>
 
         <div className="mt-10">
-          {cabins.map((cabin, i) => (
-            <CabinBlock key={cabin.id} cabin={cabin} index={i} />
-          ))}
+          <CabinChooser />
         </div>
       </section>
+
 
       {/* 3b — Buscador repetido */}
       <section className="container-x py-14 md:py-20">
