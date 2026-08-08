@@ -131,16 +131,27 @@ export function AvailabilitySearch({
     setErrors(next);
     if (Object.keys(next).length > 0) return;
 
-    window.open(
-      availabilityWhatsappLink({
-        arrival: fmt(arrival!),
-        departure: fmt(departure!),
-        cabin: cabin!.label,
-        guests,
-      }),
-      "_blank",
-      "noopener,noreferrer",
-    );
+    const url = availabilityWhatsappLink({
+      arrival: fmt(arrival!),
+      departure: fmt(departure!),
+      cabin: cabin!.label,
+      guests,
+    });
+
+    // Algunos navegadores y vistas embebidas bloquean window.open:
+    // usamos un enlace real y, si falla, navegamos en la misma pestaña.
+    try {
+      const a = document.createElement("a");
+      a.href = url;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch {
+      window.location.href = url;
+    }
+
   };
 
   return (

@@ -53,8 +53,9 @@ export const cabins: Cabin[] = [
     intro:
       "La más amplia: sala con vista al lago, escalera a planta alta, terraza para ver el atardecer y baño privado.",
     features: ["Sala con vista al lago", "Terraza amplia", "Planta alta con habitaciones", "Baño privado"],
-    hero: photos.p19,
-    gallery: [photos.p20, photos.p21, photos.p22, photos.p23, photos.p24],
+    hero: photos.p22,
+    gallery: [photos.p19, photos.p20, photos.p21, photos.p23, photos.p24],
+
   },
 ];
 
