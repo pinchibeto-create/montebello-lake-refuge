@@ -18,6 +18,12 @@ export function whatsappLink(
   return `https://wa.me/${SITE.whatsappNumber}?text=${encodeURIComponent(message)}`;
 }
 
+export function cabinWhatsappLink(cabinName: string) {
+  return whatsappLink(
+    `Hola, estoy interesado en consultar disponibilidad para la ${cabinName} de Cinco Lagos.`,
+  );
+}
+
 export type AvailabilityQuery = {
   arrival: string;
   departure: string;
