@@ -151,12 +151,10 @@ export function CabinChooser() {
 
   return (
     <div>
-      <p className="text-xs text-muted-foreground md:hidden">Desliza para ver las opciones →</p>
-
       <div
         role="tablist"
         aria-label="Tipos de cabaña"
-        className="mt-3 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 [scrollbar-width:none] md:mt-0 md:grid md:grid-cols-4 md:overflow-visible md:pb-0 [&::-webkit-scrollbar]:hidden"
+        className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4"
       >
         {cabins.map((cabin) => (
           <CabinCard
