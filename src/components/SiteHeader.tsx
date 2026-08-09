@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import logo from "@/assets/logo-cinco-lagos.jpeg.asset.json";
+const logo = { url: "/images/logo/cinco-lagos-logo.jpeg" };
 import { SITE, whatsappLink } from "@/lib/site";
 import { IconWhatsapp } from "@/components/Icons";
 

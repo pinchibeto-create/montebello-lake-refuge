@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import logo from "@/assets/logo-cinco-lagos.jpeg.asset.json";
+const logo = { url: "/images/logo/cinco-lagos-logo.jpeg" };
 import { photos } from "@/lib/photos";
 import { SITE, whatsappLink } from "@/lib/site";
 import { SiteHeader } from "@/components/SiteHeader";
