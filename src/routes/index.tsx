@@ -12,6 +12,8 @@ const TITLE = "Cinco Lagos — Cabañas en Montebello, Chiapas";
 const DESCRIPTION =
   "Cabañas frente a las Lagunas de Montebello, Chiapas. Cuatro formas de hospedarte con vista al lago, baño privado y terraza. Consulta disponibilidad por WhatsApp.";
 const URL = "https://montebello-lake-refuge.lovable.app/";
+const OG_IMAGE =
+  "https://cabanascincolagos.com/images/cabana-cristal/cabana-cristal-01.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
