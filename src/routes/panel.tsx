@@ -17,6 +17,7 @@ type Reservation = {
   check_in: string; check_out: string; guests: number | null;
   status: "pendiente" | "confirmada" | "cancelada" | "completada";
   payment_status: Payment; total_amount: number | null; paid_amount: number;
+  reservation_code: string; payment_reference: string | null;
 };
 
 const sourceLabels: Record<Source, string> = { booking: "Booking", airbnb: "Airbnb", social: "Redes", local: "Local", directa: "Directa", otro: "Otro" };
@@ -69,7 +70,7 @@ function PanelPage() {
       const start = isoDate(startDate), end = isoDate(endDate);
       const [c, r] = await Promise.all([
         rest<Cabin[]>(`cabins?select=id,nombre,codigo,orden&cliente_id=eq.${membership.cliente_id}&activa=eq.true&order=orden.asc`, session),
-        rest<Reservation[]>(`reservations?select=id,cabin_id,source,guest_name,guest_phone,check_in,check_out,guests,status,payment_status,total_amount,paid_amount&cliente_id=eq.${membership.cliente_id}&status=in.(pendiente,confirmada)&check_in=lt.${end}&check_out=gt.${start}`, session),
+        rest<Reservation[]>(`reservations?select=id,cabin_id,source,guest_name,guest_phone,check_in,check_out,guests,status,payment_status,total_amount,paid_amount,reservation_code,payment_reference&cliente_id=eq.${membership.cliente_id}&status=in.(pendiente,confirmada)&check_in=lt.${end}&check_out=gt.${start}`, session),
       ]);
       setCabins(c); setReservations(r);
     } catch (e) { setError(e instanceof Error ? e.message : "No se pudieron cargar las reservaciones"); }
@@ -112,10 +113,11 @@ function PanelPage() {
               <div className="flex items-center gap-3 px-5 py-4"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#e6f0ec]"><BedDouble className="h-4 w-4"/></span><b className="text-sm">{c.nombre}</b></div>
               {days.map(d => {
                 const r = reservationFor(c.id, d), wa = r ? whatsapp(r.guest_phone) : null;
-                if (!r) return <div key={isoDate(d)} className="border-l p-2"><div className="flex h-full min-h-[88px] items-center justify-center rounded-xl bg-emerald-50 text-xs font-semibold text-emerald-700">Disponible</div></div>;
-                return <div key={isoDate(d)} className="border-l p-2"><div className="min-h-[88px] rounded-xl bg-slate-50 p-2.5">
+                if (!r) return <div key={isoDate(d)} className="border-l p-2"><div className="flex h-full min-h-[96px] items-center justify-center rounded-xl bg-emerald-50 text-xs font-semibold text-emerald-700">Disponible</div></div>;
+                return <div key={isoDate(d)} className="border-l p-2"><div className="min-h-[96px] rounded-xl bg-slate-50 p-2.5">
                   <div className="flex flex-wrap gap-1"><span className={`rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${sourceStyles[r.source]}`}>{sourceLabels[r.source]}</span><span className={`rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${paymentStyles[r.payment_status]}`}>{paymentLabels[r.payment_status]}</span></div>
-                  <p className="mt-2 truncate text-xs font-semibold" title={r.guest_name || "Reservación"}>{r.guest_name || "Reservación"}</p>
+                  <p className="mt-1.5 font-mono text-[10px] font-bold tracking-[.12em] text-[#1f8f7a]">#{r.reservation_code}</p>
+                  <p className="mt-1 truncate text-xs font-semibold" title={r.guest_name || "Reservación"}>{r.guest_name || "Reservación"}</p>
                   <p className="mt-0.5 text-[10px] text-[#173c34]/50">{r.check_in} → {r.check_out}</p>
                   <div className="mt-2 flex gap-1">{membership.rol !== "lectura" && <button onClick={() => setEditing(r)} className="inline-flex items-center gap-1 rounded-lg border bg-white px-2 py-1 text-[10px] font-semibold"><Pencil className="h-3 w-3"/>Modificar</button>}{wa && <a href={wa} target="_blank" rel="noreferrer" aria-label="Enviar WhatsApp" className="grid h-6 w-6 place-items-center rounded-lg bg-[#25D366] text-white"><MessageCircle className="h-3 w-3"/></a>}</div>
                 </div></div>;
@@ -138,21 +140,28 @@ function LoginScreen({ onLogin }: { onLogin: (s: AuthSession) => void }) {
 }
 
 function ReservationModal({ cabins, membership, session, reservation, onClose, onSaved }: { cabins: Cabin[]; membership: Membership; session: AuthSession; reservation?: Reservation; onClose: () => void; onSaved: () => void }) {
-  const [cabinId, setCabinId] = useState(reservation?.cabin_id || cabins[0]?.id || ""), [source, setSource] = useState<Source>(reservation?.source || "local"), [guestName, setGuestName] = useState(reservation?.guest_name || ""), [guestPhone, setGuestPhone] = useState(reservation?.guest_phone || ""), [checkIn, setCheckIn] = useState(reservation?.check_in || isoDate(new Date())), [checkOut, setCheckOut] = useState(reservation?.check_out || isoDate(addDays(new Date(), 1))), [guests, setGuests] = useState(String(reservation?.guests || 2)), [paymentStatus, setPaymentStatus] = useState<Payment>(reservation?.payment_status || "pendiente"), [total, setTotal] = useState(reservation?.total_amount == null ? "" : String(reservation.total_amount)), [paid, setPaid] = useState(String(reservation?.paid_amount || 0)), [error, setError] = useState(""), [saving, setSaving] = useState(false);
+  const [cabinId, setCabinId] = useState(reservation?.cabin_id || cabins[0]?.id || ""), [source, setSource] = useState<Source>(reservation?.source || "local"), [guestName, setGuestName] = useState(reservation?.guest_name || ""), [guestPhone, setGuestPhone] = useState(reservation?.guest_phone || ""), [checkIn, setCheckIn] = useState(reservation?.check_in || isoDate(new Date())), [checkOut, setCheckOut] = useState(reservation?.check_out || isoDate(addDays(new Date(), 1))), [guests, setGuests] = useState(String(reservation?.guests || 2)), [paymentStatus, setPaymentStatus] = useState<Payment>(reservation?.payment_status || "pendiente"), [total, setTotal] = useState(reservation?.total_amount == null ? "" : String(reservation.total_amount)), [paid, setPaid] = useState(String(reservation?.paid_amount || 0)), [paymentReference, setPaymentReference] = useState(reservation?.payment_reference || ""), [error, setError] = useState(""), [saving, setSaving] = useState(false);
   async function submit(e: FormEvent) {
     e.preventDefault(); setSaving(true); setError("");
     try {
-      const body = { cliente_id: membership.cliente_id, cabin_id: cabinId, source, created_by: session.user.id, guest_name: guestName || null, guest_phone: guestPhone || null, check_in: checkIn, check_out: checkOut, guests: Number(guests) || null, status: "confirmada", payment_status: paymentStatus, total_amount: total === "" ? null : Number(total), paid_amount: Number(paid) || 0 };
-      await rest(`reservations${reservation ? `?id=eq.${reservation.id}` : ""}`, session, { method: reservation ? "PATCH" : "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify(body) }); onSaved();
+      const body = { cliente_id: membership.cliente_id, cabin_id: cabinId, source, created_by: session.user.id, guest_name: guestName || null, guest_phone: guestPhone || null, check_in: checkIn, check_out: checkOut, guests: Number(guests) || null, status: "confirmada", payment_status: paymentStatus, total_amount: total === "" ? null : Number(total), paid_amount: Number(paid) || 0, payment_reference: paymentReference.trim() || null };
+      if (reservation) {
+        await rest(`reservations?id=eq.${reservation.id}`, session, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify(body) });
+      } else {
+        const created = await rest<Reservation[]>("reservations?select=id,reservation_code", session, { method: "POST", headers: { Prefer: "return=representation" }, body: JSON.stringify(body) });
+        if (created[0]?.reservation_code) window.alert(`Reservación creada correctamente. Código: ${created[0].reservation_code}`);
+      }
+      onSaved();
     } catch (e) { const m = e instanceof Error ? e.message : "No se pudo guardar"; setError(m.includes("reservations_no_overlap") ? "Esa cabaña ya tiene una reservación que se cruza con esas fechas." : m); } finally { setSaving(false); }
   }
-  return <div className="fixed inset-0 z-50 grid place-items-center bg-black/45 p-4"><form onSubmit={submit} className="max-h-[92vh] w-full max-w-2xl overflow-auto rounded-3xl bg-white p-6 text-[#173c34] shadow-xl md:p-8"><div className="flex justify-between"><div><p className="text-xs font-semibold uppercase tracking-[.18em] text-[#1f8f7a]">Cinco Lagos</p><h2 className="text-2xl font-semibold">{reservation ? "Modificar reservación" : "Nueva reservación"}</h2></div><button type="button" onClick={onClose}><X className="h-5 w-5"/></button></div><div className="mt-6 grid gap-4 sm:grid-cols-2">
+  return <div className="fixed inset-0 z-50 grid place-items-center bg-black/45 p-4"><form onSubmit={submit} className="max-h-[92vh] w-full max-w-2xl overflow-auto rounded-3xl bg-white p-6 text-[#173c34] shadow-xl md:p-8"><div className="flex justify-between"><div><p className="text-xs font-semibold uppercase tracking-[.18em] text-[#1f8f7a]">Cinco Lagos</p><h2 className="text-2xl font-semibold">{reservation ? "Modificar reservación" : "Nueva reservación"}</h2>{reservation?.reservation_code && <p className="mt-2 font-mono text-sm font-bold tracking-[.18em] text-[#1f8f7a]">Código: {reservation.reservation_code}</p>}</div><button type="button" onClick={onClose}><X className="h-5 w-5"/></button></div><div className="mt-6 grid gap-4 sm:grid-cols-2">
     <Field label="Cabaña"><select value={cabinId} onChange={e => setCabinId(e.target.value)} className="input-panel">{cabins.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}</select></Field>
     <Field label="Origen"><select value={source} onChange={e => setSource(e.target.value as Source)} className="input-panel">{Object.entries(sourceLabels).map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></Field>
     <Field label="Nombre"><input value={guestName} onChange={e => setGuestName(e.target.value)} className="input-panel"/></Field><Field label="Teléfono"><input value={guestPhone} onChange={e => setGuestPhone(e.target.value)} className="input-panel"/></Field>
     <Field label="Entrada"><input type="date" required value={checkIn} onChange={e => setCheckIn(e.target.value)} className="input-panel"/></Field><Field label="Salida"><input type="date" required value={checkOut} onChange={e => setCheckOut(e.target.value)} className="input-panel"/></Field>
     <Field label="Huéspedes"><input type="number" min="1" value={guests} onChange={e => setGuests(e.target.value)} className="input-panel"/></Field><Field label="Estado de pago"><select value={paymentStatus} onChange={e => setPaymentStatus(e.target.value as Payment)} className="input-panel"><option value="pendiente">Pendiente</option><option value="anticipo">Anticipo</option><option value="pagado">Pagado</option></select></Field>
     <Field label="Total"><input type="number" min="0" value={total} onChange={e => setTotal(e.target.value)} className="input-panel"/></Field><Field label="Monto pagado"><input type="number" min="0" value={paid} onChange={e => setPaid(e.target.value)} className="input-panel"/></Field>
+    <Field label="Autorización / referencia de transferencia"><input value={paymentReference} onChange={e => setPaymentReference(e.target.value)} className="input-panel" placeholder="Opcional"/></Field>
   </div><p className="mt-3 text-sm text-[#173c34]/55">Saldo pendiente: {total === "" ? "—" : money(Math.max(0, Number(total) - (Number(paid) || 0)))}</p>{error && <p className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}<div className="mt-6 flex justify-end gap-3"><button type="button" onClick={onClose} className="rounded-2xl border px-5 py-3 text-sm font-semibold">Cancelar</button><button disabled={saving} className="rounded-2xl bg-[#1f8f7a] px-5 py-3 text-sm font-semibold text-white">{saving ? "Guardando…" : "Guardar"}</button></div><style>{inputStyle}</style></form></div>;
 }
 
