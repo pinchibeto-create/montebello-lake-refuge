@@ -98,3 +98,24 @@ export async function rest<T>(path: string, session: AuthSession, init: RequestI
   const text = await response.text();
   return (text ? JSON.parse(text) : undefined) as T;
 }
+
+export async function invokeFunction<T>(name: string, session: AuthSession, body: unknown): Promise<T> {
+  const response = await fetch(`${SUPABASE_URL}/functions/v1/${name}`, {
+    method: "POST",
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${session.access_token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (response.status === 401) {
+    signOutLocal();
+    throw new Error("Tu sesión venció. Vuelve a iniciar sesión.");
+  }
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data?.error || data?.message || "No se pudo ejecutar la función");
+  return data as T;
+}
