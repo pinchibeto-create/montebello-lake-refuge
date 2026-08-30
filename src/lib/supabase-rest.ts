@@ -42,7 +42,7 @@ export async function signUp(email: string, password: string): Promise<{ session
   const normalized = email.trim().toLowerCase();
   const allowed = new Set([
     "ivlu001@hotmail.com",
-    "fredy@gmail.com",
+    "garciafredi891@gmail.com",
     "omerog@hotmail.com",
     "alondra_5_7@hotmail.com",
   ]);
