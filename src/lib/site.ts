@@ -6,9 +6,8 @@ export const SITE = {
   whatsappNumber: "525638844112",
   phoneDisplay: "56 3884 4112",
   facebookUrl: "https://www.facebook.com/CabanasMirador5Lagos",
-  // Reemplazar por el enlace exacto de Google Maps cuando esté disponible.
   googleMapsUrl:
-    "https://www.google.com/maps/search/?api=1&query=Cabañas+Mirador+5+Lagos+Montebello+Chiapas",
+    "https://maps.app.goo.gl/r9jaXho8BMMrAYKr5?g_st=ic",
   address: "Lagunas de Montebello, La Trinitaria, Chiapas, México",
 } as const;
 
@@ -37,15 +36,6 @@ export function availabilityWhatsappLink({
   cabin,
   guests,
 }: AvailabilityQuery) {
-  const mensaje = `Hola, quiero consultar disponibilidad en Cinco Lagos.
-
-Fecha de llegada: ${arrival}
-Fecha de salida: ${departure}
-Cabaña: ${cabin}
-Número de personas: ${guests}
-
-¿Me pueden confirmar si está disponible y compartirme más información para reservar?
-
-Gracias.`;
+  const mensaje = `Hola, quiero consultar disponibilidad en Cinco Lagos.\n\nFecha de llegada: ${arrival}\nFecha de salida: ${departure}\nCabaña: ${cabin}\nNúmero de personas: ${guests}\n\n¿Me pueden confirmar si está disponible y compartirme más información para reservar?\n\nGracias.`;
   return `https://wa.me/${SITE.whatsappNumber}?text=${encodeURIComponent(mensaje)}`;
 }
