@@ -38,6 +38,28 @@ export async function signIn(email: string, password: string): Promise<AuthSessi
   return data;
 }
 
+export async function signUp(email: string, password: string): Promise<{ session: AuthSession | null; message: string }> {
+  const normalized = email.trim().toLowerCase();
+  const allowed = new Set(["ivlu001@hotmail.com", "fredy@gmail.com", "omerog@hotmail.com"]);
+  if (!allowed.has(normalized)) throw new Error("Este correo no está autorizado para el panel de Cinco Lagos.");
+  if (password.length < 8) throw new Error("La contraseña debe tener al menos 8 caracteres.");
+
+  const response = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
+    method: "POST",
+    headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
+    body: JSON.stringify({ email: normalized, password }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data?.msg || data?.error_description || data?.message || "No se pudo crear la cuenta");
+
+  if (data?.access_token) {
+    storeSession(data as AuthSession);
+    return { session: data as AuthSession, message: "Cuenta creada correctamente." };
+  }
+
+  return { session: null, message: "Cuenta creada. Revisa tu correo y confirma tu dirección antes de iniciar sesión." };
+}
+
 export function signOutLocal() {
   storeSession(null);
 }
