@@ -40,7 +40,12 @@ export async function signIn(email: string, password: string): Promise<AuthSessi
 
 export async function signUp(email: string, password: string): Promise<{ session: AuthSession | null; message: string }> {
   const normalized = email.trim().toLowerCase();
-  const allowed = new Set(["ivlu001@hotmail.com", "fredy@gmail.com", "omerog@hotmail.com"]);
+  const allowed = new Set([
+    "ivlu001@hotmail.com",
+    "fredy@gmail.com",
+    "omerog@hotmail.com",
+    "alondra_5_7@hotmail.com",
+  ]);
   if (!allowed.has(normalized)) throw new Error("Este correo no está autorizado para el panel de Cinco Lagos.");
   if (password.length < 8) throw new Error("La contraseña debe tener al menos 8 caracteres.");
 
