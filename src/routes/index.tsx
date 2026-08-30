@@ -49,7 +49,7 @@ export const Route = createFileRoute("/")({
           name: "Cinco Lagos — Cabañas Mirador 5 Lagos",
           description: DESCRIPTION,
           url: URL,
-          telephone: "+52 961 255 9561",
+          telephone: "+52 56 3884 4112",
           sameAs: [SITE.facebookUrl],
           address: {
             "@type": "PostalAddress",
