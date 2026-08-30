@@ -1,0 +1,61 @@
+name: Actualizar WhatsApp Cinco Lagos
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/update-whatsapp-cinco-lagos.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  update-phone:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Actualizar teléfono, enlaces y QR
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import base64
+
+          replacements = {
+              'src/lib/site.ts': [
+                  ('529612559561', '525638844112'),
+                  ('961 255 9561', '56 3884 4112'),
+              ],
+              'src/routes/index.tsx': [
+                  ('+52 961 255 9561', '+52 56 3884 4112'),
+              ],
+          }
+
+          for filename, pairs in replacements.items():
+              path = Path(filename)
+              text = path.read_text(encoding='utf-8')
+              original = text
+              for old, new in pairs:
+                  text = text.replace(old, new)
+              if text != original:
+                  path.write_text(text, encoding='utf-8')
+
+          qr_b64 = 'iVBORw0KGgoAAAANSUhEUgAAAeoAAAHqAQAAAADjFjCXAAAEGElEQVR4nO2dTW7jOBCFXw0FZCkBcwAfRbpBH6mRI/UNxKPkAA1ISwMS3izIoih3z8Z0I3H7vYWhKP7ACCjUL8UY0aD4TwsNCBcuXLhw4cKFC38sblkdEAfAJux2CNHMAOxm0+o3p8etLvxF8ZEkuQAYP7r8q3EJJLnBvi+ATQjkjECS5BlvXF34i+JrcV8AOPuVTWsHoCcRh93SPbPuFm9cXfhr4d3/3A+0OMAQLwSwDsD44zfffepnF/5l8HjZYNNqRi6BGJfs4Tgj/Nrb+2J/vPDnwN1/9QSwAjZ+dBsBwsb5agACbZy3zgAYxh9AbXtP/ezCPxmPZmY25Js5m1vfCJSrcQkEvLh96OrCXwxPvu5wXwSuqUuCOMAYL1cj1t0Yh4DsEx+2uvDXxJH6ICO3KnMjl8CU1wGBnPv8FaDfEpE0P/WzC/9sfO1gU3/1yNlvqV+ceyhrB74PgSnWRnWJhbfpF1/n3gzjgtQq9g//csHk64Tfp2w+QBpQnALpVvWL06hi7jePv7I64XfrSNIABCbTQ/J6zCkdTq06zv2WZ2iyOuF3qbK6FGb746MUDXBbQ7pSNSG8SZ7D5cwtBdcZQJq+1sVt8A0ClK8T3qTstTxVS0XDjPLRH74uWycpqxPeppzSpfCZe3PJpWWVXC/F1U15nfDH4JzXNwL9NfXhbEIofu1qiL61qR6VPW514a+GV3ldFVK5+IDiiKvzUdLK1wlvUy5G+w2pfMgh1QPueTaWsz7VsMLbxEoLkCcSpXIt9ufu0H2irE74/fIGsVepVefkeEfiFFy9fSKrE36v6s7JkrcM18kdWZK7OhzL1wlvkEfXrfRQapfmHq5u6XnoldUJb8OjvdGm1QxYzciPNyKmrU0dOK8dzAbfRpxzvcetLvxV8d2OlM7sslX3vHJ1dxiH3XLq90X+eOHPhZ/30gGoBxTnerUv39NETHibbrO5GYC/mQPkUVlft09SX0XVhPD75QUCAFTNuK1sbfJxP047jWV1wht0WN0x/ao2OR37S6qAu0ARVniLcl7HzfO63hspM4BjBJtNz1vKsjrhDfIuMeCvTNS7iv3HY0CR7ynCCm+Q+7qjD5zdXN0lrpK7GpPVCb9PPCtncwtQZXilwvXXyKjZhPAWVanab+rVKptLtrYc2z1ldcLb8NGTO7MhkCznh72nU2N347yaeedu17v/wh+A+1md5IcZ4iW/bG3fl3JC5xCYTyjudUKs8Bbdnr9p9alNe5dPslt2EOu/ABA2i8PPjg9ZXbhwANWGTrMhpH0ofB8CbfJTKAAANv2J1YW/Bn57ViewWjrOjvEbgHjZ8hF3cfjpV9/KiXdP/ezCPwu/rWGPVkmuUvsyDOvLDEPTf+FNMv33OuHChQsXLly48L8C/w9DwEuld982wQAAAABJRU5ErkJggg=='
+          Path('public/images/general/qr-disponibilidad.png').write_bytes(base64.b64decode(qr_b64))
+          PY
+
+          git diff --check
+          git diff -- src/lib/site.ts src/routes/index.tsx
+
+      - name: Commit y push
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/lib/site.ts src/routes/index.tsx public/images/general/qr-disponibilidad.png
+          git commit -m "fix: actualizar WhatsApp de Cinco Lagos a 56 3884 4112"
+          git push
