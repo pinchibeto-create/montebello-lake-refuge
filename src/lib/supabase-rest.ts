@@ -1,5 +1,6 @@
 const SUPABASE_URL = "https://jybfyuaxcewbecmbaibu.supabase.co";
 const SUPABASE_KEY = "sb_publishable_Lc90p_iA0gGGQKHW6PvADA_SvoEa975";
+const AUTH_REDIRECT_URL = "https://cabanascincolagos.com/panel";
 
 export type AuthSession = {
   access_token: string;
@@ -49,7 +50,7 @@ export async function signUp(email: string, password: string): Promise<{ session
   if (!allowed.has(normalized)) throw new Error("Este correo no está autorizado para el panel de Cinco Lagos.");
   if (password.length < 8) throw new Error("La contraseña debe tener al menos 8 caracteres.");
 
-  const response = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
+  const response = await fetch(`${SUPABASE_URL}/auth/v1/signup?redirect_to=${encodeURIComponent(AUTH_REDIRECT_URL)}`, {
     method: "POST",
     headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
     body: JSON.stringify({ email: normalized, password }),
@@ -68,7 +69,7 @@ export async function signUp(email: string, password: string): Promise<{ session
 export async function resendSignupConfirmation(email: string): Promise<void> {
   const normalized = email.trim().toLowerCase();
   if (!normalized) throw new Error("Escribe tu correo primero.");
-  const response = await fetch(`${SUPABASE_URL}/auth/v1/resend`, {
+  const response = await fetch(`${SUPABASE_URL}/auth/v1/resend?redirect_to=${encodeURIComponent(AUTH_REDIRECT_URL)}`, {
     method: "POST",
     headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
     body: JSON.stringify({ type: "signup", email: normalized }),
@@ -80,8 +81,7 @@ export async function resendSignupConfirmation(email: string): Promise<void> {
 export async function requestPasswordReset(email: string): Promise<void> {
   const normalized = email.trim().toLowerCase();
   if (!normalized) throw new Error("Escribe tu correo primero.");
-  const redirectTo = typeof window === "undefined" ? "https://cabanascincolagos.com/panel" : `${window.location.origin}/panel`;
-  const response = await fetch(`${SUPABASE_URL}/auth/v1/recover?redirect_to=${encodeURIComponent(redirectTo)}`, {
+  const response = await fetch(`${SUPABASE_URL}/auth/v1/recover?redirect_to=${encodeURIComponent(AUTH_REDIRECT_URL)}`, {
     method: "POST",
     headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
     body: JSON.stringify({ email: normalized }),
