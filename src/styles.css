@@ -107,6 +107,17 @@
   }
 }
 
+/* Inputs del panel: texto oscuro sobre fondo blanco */
+.input-panel {
+  color: #173c34;
+  caret-color: #173c34;
+}
+
+.input-panel::placeholder {
+  color: rgba(23, 60, 52, 0.5);
+  opacity: 1;
+}
+
 @utility container-x {
   margin-inline: auto;
   width: 100%;
