@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { BedDouble, CalendarDays, ChevronLeft, ChevronRight, CircleUserRound, Eye, FileText, LogOut, MessageCircle, Pencil, Plus, X } from "lucide-react";
-import { getStoredSession, invokeFunction, rest, signIn, signOutLocal, type AuthSession } from "../lib/supabase-rest";
+import { getRecoverySessionFromUrl, getStoredSession, invokeFunction, requestPasswordReset, resendSignupConfirmation, rest, signIn, signOutLocal, updatePassword, type AuthSession } from "../lib/supabase-rest";
 
 export const Route = createFileRoute("/panel")({
   head: () => ({ meta: [{ title: "Panel de reservaciones | Cinco Lagos" }, { name: "robots", content: "noindex, nofollow" }] }),
@@ -51,7 +51,15 @@ function PanelPage() {
   const days = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(startDate, i)), [startDate]);
   const endDate = useMemo(() => addDays(startDate, 7), [startDate]);
 
-  useEffect(() => { setSession(getStoredSession()); setChecking(false); }, []);
+  useEffect(() => {
+    if (getRecoverySessionFromUrl()) {
+      signOutLocal();
+      setSession(null);
+    } else {
+      setSession(getStoredSession());
+    }
+    setChecking(false);
+  }, []);
   useEffect(() => { if (session) void loadMembership(session); }, [session]);
   useEffect(() => { if (session && membership) void loadData(); }, [session, membership, startDate]);
 
@@ -135,9 +143,59 @@ function PanelPage() {
 }
 
 function LoginScreen({ onLogin }: { onLogin: (s: AuthSession) => void }) {
-  const [email, setEmail] = useState(""), [password, setPassword] = useState(""), [error, setError] = useState(""), [loading, setLoading] = useState(false);
-  async function submit(e: FormEvent) { e.preventDefault(); setLoading(true); setError(""); try { onLogin(await signIn(email.trim(), password)); } catch (e) { setError(e instanceof Error ? e.message : "No se pudo iniciar sesión"); } finally { setLoading(false); } }
-  return <div className="grid min-h-screen place-items-center bg-[#f4f1ea] px-5"><form onSubmit={submit} className="w-full max-w-md rounded-3xl bg-white p-8"><h1 className="text-2xl font-semibold text-[#173c34]">Cinco Lagos</h1><p className="mt-2 text-sm text-slate-500">Panel interno de reservaciones</p><input type="email" required placeholder="Correo" value={email} onChange={e => setEmail(e.target.value)} className="input-panel mt-6"/><input type="password" required placeholder="Contraseña" value={password} onChange={e => setPassword(e.target.value)} className="input-panel mt-3"/>{error && <p className="mt-3 text-sm text-red-700">{error}</p>}<button disabled={loading} className="mt-5 w-full rounded-2xl bg-[#173c34] px-5 py-3 font-semibold text-white">{loading ? "Entrando…" : "Entrar"}</button><style>{inputStyle}</style></form></div>;
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [recoverySession, setRecoverySession] = useState<AuthSession | null>(() => getRecoverySessionFromUrl());
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  async function submit(e: FormEvent) {
+    e.preventDefault(); setLoading(true); setError(""); setMessage("");
+    try { onLogin(await signIn(email.trim(), password)); }
+    catch (e) { setError(e instanceof Error ? e.message : "No se pudo iniciar sesión"); }
+    finally { setLoading(false); }
+  }
+
+  async function resendConfirmation() {
+    setLoading(true); setError(""); setMessage("");
+    try {
+      await resendSignupConfirmation(email);
+      setMessage("Te enviamos nuevamente el correo de confirmación. Revisa también Spam o Promociones.");
+    } catch (e) { setError(e instanceof Error ? e.message : "No se pudo reenviar el correo"); }
+    finally { setLoading(false); }
+  }
+
+  async function forgotPassword() {
+    setLoading(true); setError(""); setMessage("");
+    try {
+      await requestPasswordReset(email);
+      setMessage("Si la cuenta existe, recibirás un correo para crear una contraseña nueva. Revisa también Spam o Promociones.");
+    } catch (e) { setError(e instanceof Error ? e.message : "No se pudo enviar el correo"); }
+    finally { setLoading(false); }
+  }
+
+  async function saveNewPassword(e: FormEvent) {
+    e.preventDefault(); setError(""); setMessage("");
+    if (!recoverySession) return;
+    if (newPassword !== confirmPassword) { setError("Las contraseñas no coinciden."); return; }
+    setLoading(true);
+    try {
+      await updatePassword(recoverySession.access_token, newPassword);
+      window.history.replaceState({}, document.title, window.location.pathname);
+      setRecoverySession(null); setNewPassword(""); setConfirmPassword("");
+      setMessage("Contraseña actualizada. Ya puedes iniciar sesión con tu nueva contraseña.");
+    } catch (e) { setError(e instanceof Error ? e.message : "No se pudo actualizar la contraseña"); }
+    finally { setLoading(false); }
+  }
+
+  if (recoverySession) {
+    return <div className="grid min-h-screen place-items-center bg-[#f4f1ea] px-5"><form onSubmit={saveNewPassword} className="w-full max-w-md rounded-3xl bg-white p-8 text-[#173c34]"><h1 className="text-2xl font-semibold">Crear nueva contraseña</h1><p className="mt-2 text-sm text-slate-500">Escribe una contraseña nueva de al menos 8 caracteres.</p><input type="password" required minLength={8} placeholder="Nueva contraseña" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="input-panel mt-6"/><input type="password" required minLength={8} placeholder="Repetir contraseña" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="input-panel mt-3"/>{error && <p className="mt-3 text-sm text-red-700">{error}</p>}<button disabled={loading} className="mt-5 w-full rounded-2xl bg-[#173c34] px-5 py-3 font-semibold text-white">{loading ? "Guardando…" : "Guardar nueva contraseña"}</button><style>{inputStyle}</style></form></div>;
+  }
+
+  return <div className="grid min-h-screen place-items-center bg-[#f4f1ea] px-5"><form onSubmit={submit} className="w-full max-w-md rounded-3xl bg-white p-8 text-[#173c34]"><h1 className="text-2xl font-semibold">Cinco Lagos</h1><p className="mt-2 text-sm text-slate-500">Panel interno de reservaciones</p><input type="email" required placeholder="Correo" value={email} onChange={e => setEmail(e.target.value)} className="input-panel mt-6"/><input type="password" required placeholder="Contraseña" value={password} onChange={e => setPassword(e.target.value)} className="input-panel mt-3"/>{error && <p className="mt-3 text-sm text-red-700">{error}</p>}{message && <p className="mt-3 rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-800">{message}</p>}<button disabled={loading} className="mt-5 w-full rounded-2xl bg-[#173c34] px-5 py-3 font-semibold text-white">{loading ? "Procesando…" : "Entrar"}</button><div className="mt-4 flex flex-col gap-2 text-center"><button type="button" disabled={loading} onClick={forgotPassword} className="text-sm font-semibold text-[#176957] hover:underline disabled:opacity-50">¿Olvidaste tu contraseña?</button><button type="button" disabled={loading} onClick={resendConfirmation} className="text-sm text-[#176957] hover:underline disabled:opacity-50">Reenviar correo de confirmación</button></div><p className="mt-4 text-center text-xs text-slate-400">Escribe primero el correo de la cuenta y luego elige la opción que necesites.</p><style>{inputStyle}</style></form></div>;
 }
 
 function ReservationDetails({ session, reservation, cabin, canEdit, onEdit, onClose }: { session: AuthSession; reservation: Reservation; cabin?: Cabin; canEdit: boolean; onEdit: () => void; onClose: () => void }) {
@@ -192,7 +250,7 @@ function ReservationModal({ cabins, membership, session, reservation, onClose, o
   </div><p className="mt-3 text-sm text-[#173c34]/55">Saldo pendiente: {total === "" ? "—" : money(Math.max(0, Number(total) - (Number(paid) || 0)))}</p>{error && <p className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}<div className="mt-6 flex justify-end gap-3"><button type="button" onClick={onClose} className="rounded-2xl border px-5 py-3 text-sm font-semibold">Cancelar</button><button disabled={saving} className="rounded-2xl bg-[#1f8f7a] px-5 py-3 text-sm font-semibold text-white">{saving ? "Guardando…" : "Guardar"}</button></div><style>{inputStyle}</style></form></div>;
 }
 
-const inputStyle = `.input-panel{margin-top:.5rem;width:100%;border:1px solid rgba(23,60,52,.15);border-radius:1rem;padding:.75rem 1rem;background:white;outline:none}.input-panel:focus{border-color:#1f8f7a}`;
+const inputStyle = `.input-panel{margin-top:.5rem;width:100%;border:1px solid rgba(23,60,52,.15);border-radius:1rem;padding:.75rem 1rem;background:white;color:#173c34;caret-color:#173c34;outline:none}.input-panel::placeholder{color:rgba(23,60,52,.48)}.input-panel:focus{border-color:#1f8f7a}`;
 function Field({ label, children }: { label: string; children: ReactNode }) { return <label className="block text-sm font-medium">{label}{children}</label>; }
 function Detail({ label, value }: { label: string; value: string }) { return <div><p className="text-[11px] font-semibold uppercase tracking-[.12em] text-[#173c34]/45">{label}</p><p className="mt-1 text-sm font-semibold">{value}</p></div>; }
 function LoadingScreen() { return <div className="grid min-h-screen place-items-center bg-[#f4f1ea] text-sm text-[#173c34]/60">Cargando panel…</div>; }
