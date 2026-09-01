@@ -65,6 +65,56 @@ export async function signUp(email: string, password: string): Promise<{ session
   return { session: null, message: "Cuenta creada. Revisa tu correo y confirma tu dirección antes de iniciar sesión." };
 }
 
+export async function resendSignupConfirmation(email: string): Promise<void> {
+  const normalized = email.trim().toLowerCase();
+  if (!normalized) throw new Error("Escribe tu correo primero.");
+  const response = await fetch(`${SUPABASE_URL}/auth/v1/resend`, {
+    method: "POST",
+    headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
+    body: JSON.stringify({ type: "signup", email: normalized }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data?.msg || data?.error_description || data?.message || "No se pudo reenviar el correo de confirmación");
+}
+
+export async function requestPasswordReset(email: string): Promise<void> {
+  const normalized = email.trim().toLowerCase();
+  if (!normalized) throw new Error("Escribe tu correo primero.");
+  const redirectTo = typeof window === "undefined" ? "https://cabanascincolagos.com/panel" : `${window.location.origin}/panel`;
+  const response = await fetch(`${SUPABASE_URL}/auth/v1/recover?redirect_to=${encodeURIComponent(redirectTo)}`, {
+    method: "POST",
+    headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
+    body: JSON.stringify({ email: normalized }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data?.msg || data?.error_description || data?.message || "No se pudo enviar el correo para restablecer la contraseña");
+}
+
+export function getRecoverySessionFromUrl(): AuthSession | null {
+  if (typeof window === "undefined") return null;
+  const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  if (hash.get("type") !== "recovery") return null;
+  const access_token = hash.get("access_token");
+  if (!access_token) return null;
+  return {
+    access_token,
+    refresh_token: hash.get("refresh_token") || undefined,
+    expires_in: Number(hash.get("expires_in") || 0) || undefined,
+    user: { id: "recovery" },
+  };
+}
+
+export async function updatePassword(accessToken: string, password: string): Promise<void> {
+  if (password.length < 8) throw new Error("La contraseña debe tener al menos 8 caracteres.");
+  const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+    method: "PUT",
+    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ password }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data?.msg || data?.error_description || data?.message || "No se pudo actualizar la contraseña");
+}
+
 export function signOutLocal() {
   storeSession(null);
 }
