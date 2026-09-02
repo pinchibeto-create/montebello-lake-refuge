@@ -118,6 +118,24 @@
   opacity: 1;
 }
 
+/* Panel de reservaciones: mantener visibles las fechas al bajar por las cabañas. */
+@media (min-width: 1120px) {
+  main > section:nth-of-type(2) {
+    overflow: visible;
+  }
+
+  main > section:nth-of-type(2) > div:nth-of-type(2) {
+    overflow: visible;
+  }
+
+  main > section:nth-of-type(2) > div:nth-of-type(2) > div > div:first-child {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    box-shadow: 0 2px 8px rgba(23, 60, 52, 0.08);
+  }
+}
+
 @utility container-x {
   margin-inline: auto;
   width: 100%;
