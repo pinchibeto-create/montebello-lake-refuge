@@ -6,10 +6,12 @@ export type AuthSession = {
   access_token: string;
   refresh_token?: string;
   expires_in?: number;
+  expires_at?: number;
   user: { id: string; email?: string };
 };
 
 const SESSION_KEY = "cinco-lagos-session";
+const REQUEST_TIMEOUT_MS = 12000;
 
 export function getStoredSession(): AuthSession | null {
   if (typeof window === "undefined") return null;
@@ -27,8 +29,42 @@ export function storeSession(session: AuthSession | null) {
   else window.localStorage.removeItem(SESSION_KEY);
 }
 
+async function fetchWithTimeout(url: string, init: RequestInit = {}, timeoutMs = REQUEST_TIMEOUT_MS): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new Error("La conexión tardó demasiado. Intenta recargar el panel.");
+    }
+    throw error;
+  } finally {
+    window.clearTimeout(timeout);
+  }
+}
+
+async function refreshSession(session: AuthSession): Promise<AuthSession | null> {
+  if (!session.refresh_token) return null;
+  try {
+    const response = await fetchWithTimeout(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, {
+      method: "POST",
+      headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh_token: session.refresh_token }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data?.access_token) return null;
+    const refreshed = data as AuthSession;
+    Object.assign(session, refreshed);
+    storeSession(session);
+    return session;
+  } catch {
+    return null;
+  }
+}
+
 export async function signIn(email: string, password: string): Promise<AuthSession> {
-  const response = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+  const response = await fetchWithTimeout(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
     method: "POST",
     headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
@@ -51,7 +87,7 @@ export async function signUp(email: string, password: string): Promise<{ session
   if (!allowed.has(normalized)) throw new Error("Este correo no está autorizado para el panel de Cinco Lagos.");
   if (password.length < 8) throw new Error("La contraseña debe tener al menos 8 caracteres.");
 
-  const response = await fetch(`${SUPABASE_URL}/auth/v1/signup?redirect_to=${encodeURIComponent(AUTH_REDIRECT_URL)}`, {
+  const response = await fetchWithTimeout(`${SUPABASE_URL}/auth/v1/signup?redirect_to=${encodeURIComponent(AUTH_REDIRECT_URL)}`, {
     method: "POST",
     headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
     body: JSON.stringify({ email: normalized, password }),
@@ -70,7 +106,7 @@ export async function signUp(email: string, password: string): Promise<{ session
 export async function resendSignupConfirmation(email: string): Promise<void> {
   const normalized = email.trim().toLowerCase();
   if (!normalized) throw new Error("Escribe tu correo primero.");
-  const response = await fetch(`${SUPABASE_URL}/auth/v1/resend?redirect_to=${encodeURIComponent(AUTH_REDIRECT_URL)}`, {
+  const response = await fetchWithTimeout(`${SUPABASE_URL}/auth/v1/resend?redirect_to=${encodeURIComponent(AUTH_REDIRECT_URL)}`, {
     method: "POST",
     headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
     body: JSON.stringify({ type: "signup", email: normalized }),
@@ -82,7 +118,7 @@ export async function resendSignupConfirmation(email: string): Promise<void> {
 export async function requestPasswordReset(email: string): Promise<void> {
   const normalized = email.trim().toLowerCase();
   if (!normalized) throw new Error("Escribe tu correo primero.");
-  const response = await fetch(`${SUPABASE_URL}/auth/v1/recover?redirect_to=${encodeURIComponent(AUTH_REDIRECT_URL)}`, {
+  const response = await fetchWithTimeout(`${SUPABASE_URL}/auth/v1/recover?redirect_to=${encodeURIComponent(AUTH_REDIRECT_URL)}`, {
     method: "POST",
     headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
     body: JSON.stringify({ email: normalized }),
@@ -107,7 +143,7 @@ export function getRecoverySessionFromUrl(): AuthSession | null {
 
 export async function updatePassword(accessToken: string, password: string): Promise<void> {
   if (password.length < 8) throw new Error("La contraseña debe tener al menos 8 caracteres.");
-  const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+  const response = await fetchWithTimeout(`${SUPABASE_URL}/auth/v1/user`, {
     method: "PUT",
     headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
     body: JSON.stringify({ password }),
@@ -120,8 +156,8 @@ export function signOutLocal() {
   storeSession(null);
 }
 
-export async function rest<T>(path: string, session: AuthSession, init: RequestInit = {}): Promise<T> {
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+async function authorizedFetch(url: string, session: AuthSession, init: RequestInit = {}, retry = true): Promise<Response> {
+  const response = await fetchWithTimeout(url, {
     ...init,
     headers: {
       apikey: SUPABASE_KEY,
@@ -130,6 +166,16 @@ export async function rest<T>(path: string, session: AuthSession, init: RequestI
       ...(init.headers || {}),
     },
   });
+
+  if (response.status === 401 && retry) {
+    const refreshed = await refreshSession(session);
+    if (refreshed) return authorizedFetch(url, refreshed, init, false);
+  }
+  return response;
+}
+
+export async function rest<T>(path: string, session: AuthSession, init: RequestInit = {}): Promise<T> {
+  const response = await authorizedFetch(`${SUPABASE_URL}/rest/v1/${path}`, session, init);
 
   if (response.status === 401) {
     signOutLocal();
@@ -151,13 +197,8 @@ export async function rest<T>(path: string, session: AuthSession, init: RequestI
 }
 
 export async function invokeFunction<T>(name: string, session: AuthSession, body: unknown): Promise<T> {
-  const response = await fetch(`${SUPABASE_URL}/functions/v1/${name}`, {
+  const response = await authorizedFetch(`${SUPABASE_URL}/functions/v1/${name}`, session, {
     method: "POST",
-    headers: {
-      apikey: SUPABASE_KEY,
-      Authorization: `Bearer ${session.access_token}`,
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify(body),
   });
 
