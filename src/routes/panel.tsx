@@ -154,7 +154,7 @@ function PanelPage() {
         <div className="flex flex-col gap-3 border-b px-5 py-5 sm:flex-row sm:items-center sm:justify-between md:px-7"><div className="flex items-center gap-3"><CalendarDays className="h-5 w-5 text-[#1f8f7a]"/><div><h3 className="font-semibold">Calendario de 7 días</h3><p className="text-xs text-[#173c34]/50">Vista detallada de escritorio</p></div></div><div className="flex gap-2"><button onClick={() => setStartDate(d => addDays(d, -7))} className="rounded-xl border p-2" aria-label="Semana anterior"><ChevronLeft className="h-4 w-4"/></button><button onClick={() => setStartDate(new Date())} className="rounded-xl border px-4 py-2 text-sm">Hoy</button><button onClick={() => setStartDate(d => addDays(d, 7))} className="rounded-xl border p-2" aria-label="Semana siguiente"><ChevronRight className="h-4 w-4"/></button></div></div>
 
         <div className="overflow-x-auto"><div className="min-w-[1120px]">
-          <div className="grid grid-cols-[170px_repeat(7,minmax(130px,1fr))] border-b bg-[#f8f6f1]">
+          <div className="sticky top-0 z-30 grid grid-cols-[170px_repeat(7,minmax(130px,1fr))] border-b bg-[#f8f6f1] shadow-sm">
             <div className="px-5 py-4 text-xs font-semibold uppercase tracking-[.14em] text-[#173c34]/45">Cabaña</div>
             {days.map(d => <div key={isoDate(d)} className={`border-l px-3 py-3 text-center ${isoDate(d) === isoDate(new Date()) ? "bg-[#eaf6f1]" : ""}`}><div className="text-xs font-semibold uppercase text-[#1f8f7a]">{shortDay(d)}</div><div className="mt-1 text-sm font-semibold capitalize">{shortDate(d)}</div></div>)}
           </div>
