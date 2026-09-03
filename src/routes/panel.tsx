@@ -17,7 +17,7 @@ type Reservation = {
   check_in: string; check_out: string; guests: number | null;
   status: "pendiente" | "confirmada" | "cancelada" | "completada";
   payment_status: Payment; total_amount: number | null; paid_amount: number;
-  reservation_code: string; payment_reference: string | null;
+  reservation_code: string; payment_reference: string | null; added_by_name: string | null;
 };
 
 type PdfResult = { url: string; bytes?: number; generated_at?: string };
@@ -36,6 +36,14 @@ function money(v: number | null) { return v == null ? "—" : new Intl.NumberFor
 function whatsapp(phone: string | null) { if (!phone) return null; let n = phone.replace(/\D/g, ""); if (n.length === 10) n = `52${n}`; return `https://wa.me/${n}`; }
 function shortGuestName(name: string | null) { if (!name) return "Reserva"; const parts = name.trim().split(/\s+/).filter(Boolean); return parts.slice(0, 2).join(" ") || "Reserva"; }
 function monthTitle(d: Date) { return new Intl.DateTimeFormat("es-MX", { month: "long", year: "numeric" }).format(d); }
+function accountName(email?: string | null) {
+  const normalized = (email || "").toLowerCase();
+  if (normalized === "ivlu001@hotmail.com" || normalized === "garciafredi891@gmail.com") return "Fredi";
+  if (normalized === "pinchibeto@gmail.com") return "Luis";
+  if (normalized === "omerog@hotmail.com") return "Omero";
+  if (normalized === "alondra_5_7@hotmail.com") return "Alondra";
+  return null;
+}
 
 function PanelPage() {
   const [session, setSession] = useState<AuthSession | null>(null);
@@ -90,7 +98,7 @@ function PanelPage() {
       const rangeEnd = isoDate(new Date(monthCursor.getFullYear(), monthCursor.getMonth() + 1, 8));
       const [c, r] = await Promise.all([
         rest<Cabin[]>(`cabins?select=id,nombre,codigo,orden&cliente_id=eq.${membership.cliente_id}&activa=eq.true&order=orden.asc`, session),
-        rest<Reservation[]>(`reservations?select=id,cabin_id,source,guest_name,guest_phone,check_in,check_out,guests,status,payment_status,total_amount,paid_amount,reservation_code,payment_reference&cliente_id=eq.${membership.cliente_id}&status=in.(pendiente,confirmada)&check_in=lt.${rangeEnd}&check_out=gt.${rangeStart}`, session),
+        rest<Reservation[]>(`reservations?select=id,cabin_id,source,guest_name,guest_phone,check_in,check_out,guests,status,payment_status,total_amount,paid_amount,reservation_code,payment_reference,added_by_name&cliente_id=eq.${membership.cliente_id}&status=in.(pendiente,confirmada)&check_in=lt.${rangeEnd}&check_out=gt.${rangeStart}`, session),
       ]);
       setCabins(c); setReservations(r);
     } catch (e) { setError(e instanceof Error ? e.message : "No se pudieron cargar las reservaciones"); }
@@ -138,7 +146,7 @@ function PanelPage() {
         <div className="flex items-center justify-between border-b px-4 py-4"><div className="flex items-center gap-2"><CalendarDays className="h-5 w-5 text-[#1f8f7a]"/><div><h3 className="font-semibold">Semana seleccionada</h3><p className="text-[11px] text-[#173c34]/50">Desliza horizontalmente</p></div></div><button onClick={() => setStartDate(new Date())} className="rounded-xl border px-3 py-2 text-xs font-semibold">Hoy</button></div>
         <div className="overflow-x-auto"><div className="min-w-[790px]">
           <div className="grid grid-cols-[84px_repeat(7,101px)] border-b bg-[#f8f6f1] text-center"><div className="sticky left-0 z-20 bg-[#f8f6f1] px-2 py-3 text-[9px] font-bold uppercase tracking-[.1em]">Cabaña</div>{days.map(d => <div key={isoDate(d)} className="border-l px-1 py-2"><div className="text-[9px] font-bold uppercase text-[#1f8f7a]">{shortDay(d)}</div><div className="text-[11px] font-semibold">{d.getDate()}/{d.getMonth()+1}</div></div>)}</div>
-          {loading ? <div className="p-5 text-center text-xs">Cargando…</div> : cabins.map(c => <div key={c.id} className="grid grid-cols-[84px_repeat(7,101px)] border-b last:border-0"><div className="sticky left-0 z-10 flex min-h-[58px] items-center bg-white px-2 text-[10px] font-bold shadow-[2px_0_3px_rgba(0,0,0,.05)]">{c.nombre}</div>{days.map(d => { const r = reservationFor(c.id, d); if (!r) return <div key={isoDate(d)} className="border-l p-1"><div className="flex min-h-[50px] items-center justify-center rounded-lg bg-emerald-50 text-[9px] font-semibold text-emerald-700">Libre</div></div>; return <div key={isoDate(d)} className="border-l p-1"><button onClick={() => setViewing(r)} title={r.guest_name || "Reservación"} className={`min-h-[50px] w-full rounded-lg p-1.5 text-left ${r.payment_status === "pagado" ? "bg-emerald-100" : r.payment_status === "anticipo" ? "bg-amber-100" : "bg-red-50"}`}><div className="truncate text-[9px] font-bold">{shortGuestName(r.guest_name)}</div><div className="mt-1 truncate text-[8px] font-semibold">{sourceLabels[r.source]}</div></button></div>; })}</div>)}
+          {loading ? <div className="p-5 text-center text-xs">Cargando…</div> : cabins.map(c => <div key={c.id} className="grid grid-cols-[84px_repeat(7,101px)] border-b last:border-0"><div className="sticky left-0 z-10 flex min-h-[58px] items-center bg-white px-2 text-[10px] font-bold shadow-[2px_0_3px_rgba(0,0,0,.05)]">{c.nombre}</div>{days.map(d => { const r = reservationFor(c.id, d); if (!r) return <div key={isoDate(d)} className="border-l p-1"><div className="flex min-h-[50px] items-center justify-center rounded-lg bg-emerald-50 text-[9px] font-semibold text-emerald-700">Libre</div></div>; return <div key={isoDate(d)} className="border-l p-1"><button onClick={() => setViewing(r)} title={r.guest_name || "Reservación"} className={`min-h-[50px] w-full rounded-lg p-1.5 text-left ${r.payment_status === "pagado" ? "bg-emerald-100" : r.payment_status === "anticipo" ? "bg-amber-100" : "bg-red-50"}`}><div className="truncate text-[9px] font-bold">{shortGuestName(r.guest_name)}</div><div className="mt-1 truncate text-[8px] font-semibold">{sourceLabels[r.source]}</div>{r.added_by_name && <div className="mt-0.5 truncate text-[7px] font-semibold opacity-70">Por {r.added_by_name}</div>}</button></div>; })}</div>)}
         </div></div>
       </section>
 
@@ -160,6 +168,7 @@ function PanelPage() {
                 <p className="mt-1.5 font-mono text-[10px] font-bold tracking-[.12em] text-[#1f8f7a]">#{r.reservation_code}</p>
                 <p className="mt-1 truncate text-xs font-semibold" title={r.guest_name || "Reservación"}>{r.guest_name || "Reservación"}</p>
                 <p className="mt-0.5 text-[10px] text-[#173c34]/50">{r.check_in} → {r.check_out}</p>
+                {r.added_by_name && <p className="mt-0.5 truncate text-[10px] font-medium text-[#173c34]/55">Agregada por: {r.added_by_name}</p>}
                 <div className="mt-2 flex flex-wrap gap-1"><button onClick={() => setViewing(r)} className="inline-flex items-center gap-1 rounded-lg border bg-white px-2 py-1 text-[10px] font-semibold"><Eye className="h-3 w-3"/>Ver</button>{membership.rol !== "lectura" && <button onClick={() => setEditing(r)} className="inline-flex items-center gap-1 rounded-lg border bg-white px-2 py-1 text-[10px] font-semibold"><Pencil className="h-3 w-3"/>Modificar</button>}{wa && <a href={wa} target="_blank" rel="noreferrer" aria-label="Enviar WhatsApp" className="grid h-6 w-6 place-items-center rounded-lg bg-[#25D366] text-white"><MessageCircle className="h-3 w-3"/></a>}</div>
               </div></div>;
             })}
@@ -249,7 +258,7 @@ function ReservationDetails({ session, reservation, cabin, canEdit, onEdit, onCl
 
   return <div className="fixed inset-0 z-50 grid place-items-center bg-black/45 p-4"><div className="max-h-[92vh] w-full max-w-2xl overflow-auto rounded-3xl bg-white p-6 text-[#173c34] shadow-xl md:p-8">
     <div className="flex items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[.18em] text-[#1f8f7a]">Ficha de reservación</p><h2 className="mt-1 text-2xl font-semibold">{reservation.guest_name || "Reservación"}</h2><div className="mt-3 inline-flex rounded-xl bg-[#eaf6f1] px-4 py-2 font-mono text-lg font-bold tracking-[.2em] text-[#176957]">{reservation.reservation_code}</div></div><button onClick={onClose} className="rounded-xl border p-2"><X className="h-4 w-4"/></button></div>
-    <div className="mt-7 grid gap-4 sm:grid-cols-2"><Detail label="Cabaña" value={cabin?.nombre || "—"}/><Detail label="Origen" value={sourceLabels[reservation.source]}/><Detail label="Teléfono" value={reservation.guest_phone || "—"}/><Detail label="Huéspedes" value={reservation.guests ? String(reservation.guests) : "—"}/><Detail label="Entrada" value={reservation.check_in}/><Detail label="Salida" value={reservation.check_out}/></div>
+    <div className="mt-7 grid gap-4 sm:grid-cols-2"><Detail label="Cabaña" value={cabin?.nombre || "—"}/><Detail label="Origen" value={sourceLabels[reservation.source]}/><Detail label="Agregada por" value={reservation.added_by_name || (reservation.source === "airbnb" ? "Airbnb (automática)" : "—")}/><Detail label="Teléfono" value={reservation.guest_phone || "—"}/><Detail label="Huéspedes" value={reservation.guests ? String(reservation.guests) : "—"}/><Detail label="Entrada" value={reservation.check_in}/><Detail label="Salida" value={reservation.check_out}/></div>
     <div className="mt-6 rounded-2xl bg-[#f8f6f1] p-5"><div className="flex flex-wrap items-center justify-between gap-3"><h3 className="font-semibold">Pago</h3><span className={`rounded-full px-3 py-1 text-xs font-semibold ${paymentStyles[reservation.payment_status]}`}>{paymentLabels[reservation.payment_status]}</span></div><div className="mt-4 grid gap-4 sm:grid-cols-3"><Detail label="Total" value={money(reservation.total_amount)}/><Detail label="Pagado" value={money(reservation.paid_amount)}/><Detail label="Saldo" value={money(balance)}/></div><div className="mt-4"><Detail label="Autorización / referencia" value={reservation.payment_reference || "Sin referencia"}/></div></div>
     {pdfError && <p className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{pdfError}</p>}
     <div className="mt-7 flex flex-wrap justify-end gap-2"><button onClick={openPdf} disabled={pdfLoading} className="inline-flex items-center gap-2 rounded-2xl bg-[#176957] px-5 py-3 text-sm font-semibold text-white disabled:opacity-60"><FileText className="h-4 w-4"/>{pdfLoading ? "Generando PDF…" : "Ver PDF"}</button>{wa && <a href={wa} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-2xl bg-[#25D366] px-5 py-3 text-sm font-semibold text-white"><MessageCircle className="h-4 w-4"/>WhatsApp</a>}{canEdit && <button onClick={onEdit} className="inline-flex items-center gap-2 rounded-2xl border px-5 py-3 text-sm font-semibold"><Pencil className="h-4 w-4"/>Modificar</button>}<button onClick={onClose} className="rounded-2xl bg-[#173c34] px-5 py-3 text-sm font-semibold text-white">Cerrar</button></div>
@@ -261,11 +270,11 @@ function ReservationModal({ cabins, membership, session, reservation, onClose, o
   async function submit(e: FormEvent) {
     e.preventDefault(); setSaving(true); setError("");
     try {
-      const body = { cliente_id: membership.cliente_id, cabin_id: cabinId, source, created_by: session.user.id, guest_name: guestName || null, guest_phone: guestPhone || null, check_in: checkIn, check_out: checkOut, guests: Number(guests) || null, status: "confirmada", payment_status: paymentStatus, total_amount: total === "" ? null : Number(total), paid_amount: Number(paid) || 0, payment_reference: paymentReference.trim() || null };
+      const body = { cliente_id: membership.cliente_id, cabin_id: cabinId, source, guest_name: guestName || null, guest_phone: guestPhone || null, check_in: checkIn, check_out: checkOut, guests: Number(guests) || null, status: "confirmada", payment_status: paymentStatus, total_amount: total === "" ? null : Number(total), paid_amount: Number(paid) || 0, payment_reference: paymentReference.trim() || null };
       if (reservation) {
         await rest(`reservations?id=eq.${reservation.id}`, session, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify(body) });
       } else {
-        const created = await rest<Reservation[]>("reservations?select=id,reservation_code", session, { method: "POST", headers: { Prefer: "return=representation" }, body: JSON.stringify(body) });
+        const created = await rest<Reservation[]>("reservations?select=id,reservation_code", session, { method: "POST", headers: { Prefer: "return=representation" }, body: JSON.stringify({ ...body, created_by: session.user.id, added_by_name: accountName(session.user.email) }) });
         if (created[0]?.reservation_code) window.alert(`Reservación creada correctamente. Código: ${created[0].reservation_code}`);
       }
       onSaved();
