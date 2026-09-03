@@ -1,0 +1,47 @@
+import { useEffect, useMemo, useState } from "react";
+
+type Session={access_token:string;user:{id:string}};
+type Cabin={id:string;nombre:string;orden:number};
+type Reservation={id:string;cabin_id:string;source:string;guest_name:string|null;guest_phone:string|null;check_in:string;check_out:string;payment_status:string;reservation_code:string;total_amount:number|null;paid_amount:number|null;guests:number|null;payment_reference:string|null};
+const URL="https://jybfyuaxcewbecmbaibu.supabase.co";
+const KEY="sb_publishable_Lc90p_iA0gGGQKHW6PvADA_SvoEa975";
+const pad=(n:number)=>String(n).padStart(2,"0");
+const iso=(d:Date)=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const add=(d:Date,n:number)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const monthTitle=(d:Date)=>new Intl.DateTimeFormat("es-MX",{month:"long",year:"numeric"}).format(d);
+const dayName=(d:Date)=>new Intl.DateTimeFormat("es-MX",{weekday:"short"}).format(d).replace(".","").toUpperCase();
+const money=(n:number|null)=>n==null?"—":new Intl.NumberFormat("es-MX",{style:"currency",currency:"MXN",maximumFractionDigits:0}).format(n);
+function auth(){try{return JSON.parse(localStorage.getItem("cinco-lagos-session")||"null") as Session|null}catch{return null}}
+async function api<T>(path:string,s:Session):Promise<T>{const r=await fetch(`${URL}/rest/v1/${path}`,{headers:{apikey:KEY,Authorization:`Bearer ${s.access_token}`}});if(!r.ok)throw new Error("No se pudo cargar la vista móvil");return r.json()}
+function occupied(r:Reservation[],cabin:string,date:string){return r.find(x=>x.cabin_id===cabin&&x.check_in<=date&&x.check_out>date)}
+function phoneLink(p:string|null){if(!p)return null;let n=p.replace(/\D/g,"");if(n.length===10)n=`52${n}`;return `https://wa.me/${n}`}
+
+export default function MobilePanelCalendar(){
+ const [active,setActive]=useState(false),[session,setSession]=useState<Session|null>(null),[client,setClient]=useState(""),[cabins,setCabins]=useState<Cabin[]>([]),[reservations,setReservations]=useState<Reservation[]>([]),[selected,setSelected]=useState(new Date()),[month,setMonth]=useState(()=>new Date(new Date().getFullYear(),new Date().getMonth(),1)),[detail,setDetail]=useState<Reservation|null>(null),[loading,setLoading]=useState(false);
+ useEffect(()=>{const check=()=>setActive(location.pathname==="/panel"&&matchMedia("(max-width: 767px)").matches);check();addEventListener("resize",check);const s=auth();setSession(s);return()=>removeEventListener("resize",check)},[]);
+ useEffect(()=>{if(!active||!session)return;(async()=>{try{const ms=await api<Array<{cliente_id:string}>>(`usuario_clientes?select=cliente_id&usuario_id=eq.${session.user.id}&activo=eq.true`,session);for(const m of ms){const c=await api<Array<{slug:string}>>(`clientes?select=slug&id=eq.${m.cliente_id}`,session);if(c[0]?.slug==="cinco-lagos"){setClient(m.cliente_id);const cs=await api<Cabin[]>(`cabins?select=id,nombre,orden&cliente_id=eq.${m.cliente_id}&activa=eq.true&order=orden.asc`,session);setCabins(cs);break}}}catch{}})()},[active,session]);
+ useEffect(()=>{if(!client||!session)return;(async()=>{setLoading(true);try{const from=iso(new Date(month.getFullYear(),month.getMonth(),1));const to=iso(new Date(month.getFullYear(),month.getMonth()+1,4));const rs=await api<Reservation[]>(`reservations?select=id,cabin_id,source,guest_name,guest_phone,check_in,check_out,payment_status,reservation_code,total_amount,paid_amount,guests,payment_reference&cliente_id=eq.${client}&status=in.(pendiente,confirmada)&check_in=lt.${to}&check_out=gt.${from}`,session);setReservations(rs)}finally{setLoading(false)}})()},[client,session,month]);
+ const three=useMemo(()=>[selected,add(selected,1),add(selected,2)],[selected]);
+ const first=new Date(month.getFullYear(),month.getMonth(),1),offset=(first.getDay()+6)%7,daysIn=new Date(month.getFullYear(),month.getMonth()+1,0).getDate();
+ const cells=Array.from({length:offset+daysIn},(_,i)=>i<offset?null:new Date(month.getFullYear(),month.getMonth(),i-offset+1));
+ const color=(d:Date)=>{const count=cabins.filter(c=>occupied(reservations,c.id,iso(d))).length;if(count===cabins.length&&cabins.length)return "bg-red-500 text-white";if(count>=4)return "bg-amber-300 text-amber-950";return "bg-emerald-100 text-emerald-800"};
+ function openDesktopAction(action:"new"|"edit",r?:Reservation){setActive(false);setTimeout(()=>{if(action==="new"){const b=[...document.querySelectorAll("button")].find(x=>x.textContent?.includes("Nueva reservación")) as HTMLButtonElement|undefined;b?.click();return}if(!r)return;const code=[...document.querySelectorAll("p")].find(x=>x.textContent?.includes(`#${r.reservation_code}`));const cell=code?.parentElement;const b=[...(cell?.querySelectorAll("button")||[])].find(x=>x.textContent?.includes("Modificar")) as HTMLButtonElement|undefined;b?.click()},80)}
+ if(!active)return null;
+ return <div className="fixed inset-0 z-[100] overflow-y-auto bg-[#f4f1ea] text-[#173c34] md:hidden">
+  <div className="sticky top-0 z-50 flex items-center justify-between bg-[#123d34] px-4 py-3 text-white"><div><p className="text-[10px] uppercase tracking-[.18em] text-white/60">Panel interno</p><b>Cinco Lagos</b></div><button onClick={()=>openDesktopAction("new")} className="rounded-xl bg-[#1f8f7a] px-3 py-2 text-xs font-semibold">+ Reserva</button></div>
+  <main className="p-3">
+   <section className="rounded-2xl bg-white p-3 shadow-sm"><div className="mb-3 flex items-center justify-between"><button onClick={()=>setMonth(new Date(month.getFullYear(),month.getMonth()-1,1))} className="rounded-lg border px-3 py-1.5">‹</button><h2 className="capitalize">{monthTitle(month)}</h2><button onClick={()=>setMonth(new Date(month.getFullYear(),month.getMonth()+1,1))} className="rounded-lg border px-3 py-1.5">›</button></div>
+    <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-semibold text-[#173c34]/45">{["L","M","M","J","V","S","D"].map((x,i)=><div key={i}>{x}</div>)}</div>
+    <div className="mt-1 grid grid-cols-7 gap-1">{cells.map((d,i)=>d?<button key={iso(d)} onClick={()=>setSelected(d)} className={`aspect-square rounded-lg text-xs font-semibold ${color(d)} ${iso(d)===iso(selected)?"ring-2 ring-[#123d34] ring-offset-1":""}`}>{d.getDate()}</button>:<span key={i}/>)}</div>
+    <div className="mt-3 flex flex-wrap gap-3 text-[10px]"><span>🟢 0–3 ocupadas</span><span>🟡 4–7 ocupadas</span><span>🔴 lleno</span></div>
+   </section>
+   <section className="mt-3 overflow-auto rounded-2xl border bg-white shadow-sm" style={{maxHeight:"calc(100vh - 330px)"}}>
+    <div className="min-w-[360px]">
+     <div className="sticky top-0 z-30 grid grid-cols-[84px_repeat(3,1fr)] border-b bg-[#f8f6f1] text-center"><div className="sticky left-0 z-40 bg-[#f8f6f1] px-1 py-2 text-[9px] font-bold uppercase">Cabaña</div>{three.map(d=><div key={iso(d)} className="border-l px-1 py-2"><div className="text-[9px] font-bold text-[#1f8f7a]">{dayName(d)}</div><div className="text-[11px] font-semibold">{d.getDate()}/{d.getMonth()+1}</div></div>)}</div>
+     {loading?<div className="p-5 text-center text-xs">Cargando…</div>:cabins.map(c=><div key={c.id} className="grid grid-cols-[84px_repeat(3,1fr)] border-b last:border-0"><div className="sticky left-0 z-20 flex min-h-[54px] items-center bg-white px-2 text-[10px] font-bold shadow-[2px_0_3px_rgba(0,0,0,.05)]">{c.nombre}</div>{three.map(d=>{const r=occupied(reservations,c.id,iso(d));return <div key={iso(d)} className="border-l p-1">{r?<button onClick={()=>setDetail(r)} className={`h-full min-h-[46px] w-full rounded-lg p-1 text-left ${r.payment_status==="pagado"?"bg-emerald-100":r.payment_status==="anticipo"?"bg-amber-100":"bg-red-50"}`}><div className="truncate text-[9px] font-bold">{r.guest_name||"Reserva"}</div><div className="mt-0.5 text-[8px] uppercase">{r.source}</div></button>:<div className="flex min-h-[46px] items-center justify-center rounded-lg bg-emerald-50 text-[9px] font-semibold text-emerald-700">Libre</div>}</div>})}</div>)}
+    </div>
+   </section>
+  </main>
+  {detail&&<div className="fixed inset-0 z-[120] flex items-end bg-black/35" onClick={()=>setDetail(null)}><div className="w-full rounded-t-3xl bg-white p-5" onClick={e=>e.stopPropagation()}><div className="flex justify-between"><div><p className="text-xs font-bold uppercase text-[#1f8f7a]">#{detail.reservation_code} · {detail.source}</p><h3 className="mt-1 text-xl font-semibold">{detail.guest_name||"Reservación"}</h3></div><button onClick={()=>setDetail(null)} className="text-xl">×</button></div><div className="mt-4 grid grid-cols-2 gap-2 text-xs"><p><b>Entrada</b><br/>{detail.check_in}</p><p><b>Salida</b><br/>{detail.check_out}</p><p><b>Huéspedes</b><br/>{detail.guests||"—"}</p><p><b>Pago</b><br/>{detail.payment_status}</p><p><b>Total</b><br/>{money(detail.total_amount)}</p><p><b>Pagado</b><br/>{money(detail.paid_amount||0)}</p></div><div className="mt-5 grid grid-cols-2 gap-2"><button onClick={()=>openDesktopAction("edit",detail)} className="rounded-xl border px-3 py-3 text-sm font-semibold">Modificar</button>{phoneLink(detail.guest_phone)?<a href={phoneLink(detail.guest_phone)!} target="_blank" rel="noreferrer" className="rounded-xl bg-[#25D366] px-3 py-3 text-center text-sm font-semibold text-white">WhatsApp</a>:<button disabled className="rounded-xl bg-slate-100 px-3 py-3 text-sm">Sin teléfono</button>}</div></div></div>}
+ </div>
+}
