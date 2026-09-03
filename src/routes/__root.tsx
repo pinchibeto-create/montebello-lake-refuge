@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import MobilePanelCalendar from "../components/mobile-panel-calendar";
+import DesktopReservationActor from "../components/desktop-reservation-actor";
 
 function NotFoundComponent() {
   return (
@@ -82,5 +83,5 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  return <QueryClientProvider client={queryClient}><Outlet /><MobilePanelCalendar /></QueryClientProvider>;
+  return <QueryClientProvider client={queryClient}><Outlet /><MobilePanelCalendar /><DesktopReservationActor /></QueryClientProvider>;
 }
