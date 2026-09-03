@@ -34,6 +34,8 @@ function shortDay(d: Date) { return new Intl.DateTimeFormat("es-MX", { weekday: 
 function shortDate(d: Date) { return new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "short" }).format(d).replace(".", ""); }
 function money(v: number | null) { return v == null ? "—" : new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }).format(v); }
 function whatsapp(phone: string | null) { if (!phone) return null; let n = phone.replace(/\D/g, ""); if (n.length === 10) n = `52${n}`; return `https://wa.me/${n}`; }
+function shortGuestName(name: string | null) { if (!name) return "Reserva"; const parts = name.trim().split(/\s+/).filter(Boolean); return parts.slice(0, 2).join(" ") || "Reserva"; }
+function monthTitle(d: Date) { return new Intl.DateTimeFormat("es-MX", { month: "long", year: "numeric" }).format(d); }
 
 function PanelPage() {
   const [session, setSession] = useState<AuthSession | null>(null);
@@ -42,6 +44,7 @@ function PanelPage() {
   const [cabins, setCabins] = useState<Cabin[]>([]);
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [startDate, setStartDate] = useState(() => new Date());
+  const [monthCursor, setMonthCursor] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showNew, setShowNew] = useState(false);
@@ -50,6 +53,10 @@ function PanelPage() {
 
   const days = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(startDate, i)), [startDate]);
   const endDate = useMemo(() => addDays(startDate, 7), [startDate]);
+  const monthFirst = useMemo(() => new Date(monthCursor.getFullYear(), monthCursor.getMonth(), 1), [monthCursor]);
+  const monthOffset = (monthFirst.getDay() + 6) % 7;
+  const monthDays = new Date(monthCursor.getFullYear(), monthCursor.getMonth() + 1, 0).getDate();
+  const monthCells = useMemo(() => Array.from({ length: monthOffset + monthDays }, (_, i) => i < monthOffset ? null : new Date(monthCursor.getFullYear(), monthCursor.getMonth(), i - monthOffset + 1)), [monthCursor, monthOffset, monthDays]);
 
   useEffect(() => {
     if (getRecoverySessionFromUrl()) {
@@ -61,7 +68,8 @@ function PanelPage() {
     setChecking(false);
   }, []);
   useEffect(() => { if (session) void loadMembership(session); }, [session]);
-  useEffect(() => { if (session && membership) void loadData(); }, [session, membership, startDate]);
+  useEffect(() => { setMonthCursor(new Date(startDate.getFullYear(), startDate.getMonth(), 1)); }, [startDate]);
+  useEffect(() => { if (session && membership) void loadData(); }, [session, membership, monthCursor]);
 
   async function loadMembership(s: AuthSession) {
     try {
@@ -78,10 +86,11 @@ function PanelPage() {
     if (!session || !membership) return;
     setLoading(true); setError("");
     try {
-      const start = isoDate(startDate), end = isoDate(endDate);
+      const rangeStart = isoDate(new Date(monthCursor.getFullYear(), monthCursor.getMonth(), 1));
+      const rangeEnd = isoDate(new Date(monthCursor.getFullYear(), monthCursor.getMonth() + 1, 8));
       const [c, r] = await Promise.all([
         rest<Cabin[]>(`cabins?select=id,nombre,codigo,orden&cliente_id=eq.${membership.cliente_id}&activa=eq.true&order=orden.asc`, session),
-        rest<Reservation[]>(`reservations?select=id,cabin_id,source,guest_name,guest_phone,check_in,check_out,guests,status,payment_status,total_amount,paid_amount,reservation_code,payment_reference&cliente_id=eq.${membership.cliente_id}&status=in.(pendiente,confirmada)&check_in=lt.${end}&check_out=gt.${start}`, session),
+        rest<Reservation[]>(`reservations?select=id,cabin_id,source,guest_name,guest_phone,check_in,check_out,guests,status,payment_status,total_amount,paid_amount,reservation_code,payment_reference&cliente_id=eq.${membership.cliente_id}&status=in.(pendiente,confirmada)&check_in=lt.${rangeEnd}&check_out=gt.${rangeStart}`, session),
       ]);
       setCabins(c); setReservations(r);
     } catch (e) { setError(e instanceof Error ? e.message : "No se pudieron cargar las reservaciones"); }
@@ -91,6 +100,14 @@ function PanelPage() {
   function reservationFor(cabinId: string, day: Date) {
     const date = isoDate(day);
     return reservations.find(r => r.cabin_id === cabinId && r.check_in <= date && r.check_out > date);
+  }
+
+  function monthDayStyle(day: Date) {
+    const occupied = cabins.filter(c => reservationFor(c.id, day)).length;
+    const available = Math.max(0, cabins.length - occupied);
+    if (cabins.length > 0 && available === 0) return "bg-red-500 text-white";
+    if (available >= 1 && available <= 4) return "bg-amber-300 text-amber-950";
+    return "bg-emerald-100 text-emerald-800";
   }
 
   const occupiedNights = useMemo(() => cabins.reduce((sum, c) => sum + days.filter(d => reservationFor(c.id, d)).length, 0), [cabins, days, reservations]);
@@ -104,14 +121,29 @@ function PanelPage() {
   return <div className="min-h-screen bg-[#f4f1ea] text-[#173c34]">
     <header className="bg-[#123d34] text-white"><div className="mx-auto flex max-w-[1500px] items-center justify-between px-5 py-4 md:px-8"><div className="flex items-center gap-3"><img src="/images/logo/cinco-lagos-logo.jpeg" alt="Cinco Lagos" className="h-11 w-11 rounded-full object-cover"/><div><p className="text-xs uppercase tracking-[.22em] text-white/60">Panel interno</p><h1 className="text-lg font-semibold">Cinco Lagos</h1></div></div><div className="flex items-center gap-2"><span className="hidden items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm sm:flex"><CircleUserRound className="h-4 w-4"/>{session.user.email}</span><button onClick={() => { signOutLocal(); setSession(null); setMembership(null); }} className="p-2"><LogOut className="h-5 w-5"/></button></div></div></header>
 
-    <main className="mx-auto max-w-[1500px] px-5 py-7 md:px-8 md:py-10">
-      <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-sm font-medium capitalize text-[#2f7668]">{displayDate(startDate)} — {displayDate(addDays(startDate, 6))}</p><h2 className="mt-1 text-3xl font-semibold">Ocupación de cabañas</h2><p className="mt-2 text-sm text-[#173c34]/60">Vista de 7 días para revisar disponibilidad de un vistazo.</p></div>{membership.rol !== "lectura" && <button onClick={() => setShowNew(true)} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#1f8f7a] px-5 py-3 text-sm font-semibold text-white"><Plus className="h-4 w-4"/> Nueva reservación</button>}</div>
+    <main className="mx-auto max-w-[1500px] px-4 py-5 md:px-8 md:py-10">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-sm font-medium capitalize text-[#2f7668]">{displayDate(startDate)} — {displayDate(addDays(startDate, 6))}</p><h2 className="mt-1 text-2xl font-semibold md:text-3xl">Ocupación de cabañas</h2><p className="mt-2 text-sm text-[#173c34]/60">Vista de 7 días para revisar disponibilidad de un vistazo.</p></div>{membership.rol !== "lectura" && <button onClick={() => setShowNew(true)} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-[#1f8f7a] px-5 py-3 text-sm font-semibold text-white"><Plus className="h-4 w-4"/> Nueva reservación</button>}</div>
       {error && <div className="mt-5 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-800">{error}</div>}
 
-      <section className="mt-8 grid gap-4 sm:grid-cols-3"><MetricCard label="Noches ocupadas" value={`${occupiedNights} / ${totalNights || 49}`} detail="En los próximos 7 días"/><MetricCard label="Noches disponibles" value={`${Math.max(0, totalNights - occupiedNights)} / ${totalNights || 49}`} detail="Espacios libres en la semana"/><MetricCard label="Llegadas" value={String(arrivals)} detail="Durante estos 7 días"/></section>
+      <section className="mt-6 grid grid-cols-3 gap-2 md:mt-8 md:gap-4"><MetricCard label="Noches ocupadas" value={`${occupiedNights} / ${totalNights || 49}`} detail="En los próximos 7 días"/><MetricCard label="Noches disponibles" value={`${Math.max(0, totalNights - occupiedNights)} / ${totalNights || 49}`} detail="Espacios libres en la semana"/><MetricCard label="Llegadas" value={String(arrivals)} detail="Durante estos 7 días"/></section>
 
-      <section className="mt-8 overflow-hidden rounded-3xl border border-[#173c34]/10 bg-white shadow-sm">
-        <div className="flex flex-col gap-3 border-b px-5 py-5 sm:flex-row sm:items-center sm:justify-between md:px-7"><div className="flex items-center gap-3"><CalendarDays className="h-5 w-5 text-[#1f8f7a]"/><div><h3 className="font-semibold">Calendario de 7 días</h3><p className="text-xs text-[#173c34]/50">Desliza horizontalmente en celular</p></div></div><div className="flex gap-2"><button onClick={() => setStartDate(d => addDays(d, -7))} className="rounded-xl border p-2" aria-label="Semana anterior"><ChevronLeft className="h-4 w-4"/></button><button onClick={() => setStartDate(new Date())} className="rounded-xl border px-4 py-2 text-sm">Hoy</button><button onClick={() => setStartDate(d => addDays(d, 7))} className="rounded-xl border p-2" aria-label="Semana siguiente"><ChevronRight className="h-4 w-4"/></button></div></div>
+      <section className="mt-6 rounded-3xl border border-[#173c34]/10 bg-white p-4 shadow-sm md:hidden">
+        <div className="flex items-center justify-between gap-3"><button onClick={() => setMonthCursor(d => new Date(d.getFullYear(), d.getMonth() - 1, 1))} className="grid h-10 w-10 place-items-center rounded-xl border" aria-label="Mes anterior"><ChevronLeft className="h-4 w-4"/></button><div className="text-center"><p className="text-xs font-semibold uppercase tracking-[.14em] text-[#1f8f7a]">Selecciona una fecha</p><h3 className="mt-1 font-semibold capitalize">{monthTitle(monthCursor)}</h3></div><button onClick={() => setMonthCursor(d => new Date(d.getFullYear(), d.getMonth() + 1, 1))} className="grid h-10 w-10 place-items-center rounded-xl border" aria-label="Mes siguiente"><ChevronRight className="h-4 w-4"/></button></div>
+        <div className="mt-4 grid grid-cols-7 gap-1 text-center text-[10px] font-semibold text-[#173c34]/45">{["L","M","M","J","V","S","D"].map((x,i)=><div key={i}>{x}</div>)}</div>
+        <div className="mt-1 grid grid-cols-7 gap-1">{monthCells.map((d,i) => d ? <button key={isoDate(d)} onClick={() => setStartDate(d)} className={`aspect-square rounded-xl text-xs font-semibold ${monthDayStyle(d)} ${isoDate(d) === isoDate(startDate) ? "ring-2 ring-[#123d34] ring-offset-1" : ""}`}>{d.getDate()}</button> : <span key={i}/>)}</div>
+        <div className="mt-4 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-[#173c34]/70"><span>🟢 Más de 4 libres</span><span>🟡 1–4 libres</span><span>🔴 Sin disponibilidad</span></div>
+      </section>
+
+      <section className="mt-4 overflow-hidden rounded-3xl border border-[#173c34]/10 bg-white shadow-sm md:hidden">
+        <div className="flex items-center justify-between border-b px-4 py-4"><div className="flex items-center gap-2"><CalendarDays className="h-5 w-5 text-[#1f8f7a]"/><div><h3 className="font-semibold">Semana seleccionada</h3><p className="text-[11px] text-[#173c34]/50">Desliza horizontalmente</p></div></div><button onClick={() => setStartDate(new Date())} className="rounded-xl border px-3 py-2 text-xs font-semibold">Hoy</button></div>
+        <div className="overflow-x-auto"><div className="min-w-[790px]">
+          <div className="grid grid-cols-[84px_repeat(7,101px)] border-b bg-[#f8f6f1] text-center"><div className="sticky left-0 z-20 bg-[#f8f6f1] px-2 py-3 text-[9px] font-bold uppercase tracking-[.1em]">Cabaña</div>{days.map(d => <div key={isoDate(d)} className="border-l px-1 py-2"><div className="text-[9px] font-bold uppercase text-[#1f8f7a]">{shortDay(d)}</div><div className="text-[11px] font-semibold">{d.getDate()}/{d.getMonth()+1}</div></div>)}</div>
+          {loading ? <div className="p-5 text-center text-xs">Cargando…</div> : cabins.map(c => <div key={c.id} className="grid grid-cols-[84px_repeat(7,101px)] border-b last:border-0"><div className="sticky left-0 z-10 flex min-h-[58px] items-center bg-white px-2 text-[10px] font-bold shadow-[2px_0_3px_rgba(0,0,0,.05)]">{c.nombre}</div>{days.map(d => { const r = reservationFor(c.id, d); if (!r) return <div key={isoDate(d)} className="border-l p-1"><div className="flex min-h-[50px] items-center justify-center rounded-lg bg-emerald-50 text-[9px] font-semibold text-emerald-700">Libre</div></div>; return <div key={isoDate(d)} className="border-l p-1"><button onClick={() => setViewing(r)} title={r.guest_name || "Reservación"} className={`min-h-[50px] w-full rounded-lg p-1.5 text-left ${r.payment_status === "pagado" ? "bg-emerald-100" : r.payment_status === "anticipo" ? "bg-amber-100" : "bg-red-50"}`}><div className="truncate text-[9px] font-bold">{shortGuestName(r.guest_name)}</div><div className="mt-1 truncate text-[8px] font-semibold">{sourceLabels[r.source]}</div></button></div>; })}</div>)}
+        </div></div>
+      </section>
+
+      <section className="mt-8 hidden overflow-hidden rounded-3xl border border-[#173c34]/10 bg-white shadow-sm md:block">
+        <div className="flex flex-col gap-3 border-b px-5 py-5 sm:flex-row sm:items-center sm:justify-between md:px-7"><div className="flex items-center gap-3"><CalendarDays className="h-5 w-5 text-[#1f8f7a]"/><div><h3 className="font-semibold">Calendario de 7 días</h3><p className="text-xs text-[#173c34]/50">Vista detallada de escritorio</p></div></div><div className="flex gap-2"><button onClick={() => setStartDate(d => addDays(d, -7))} className="rounded-xl border p-2" aria-label="Semana anterior"><ChevronLeft className="h-4 w-4"/></button><button onClick={() => setStartDate(new Date())} className="rounded-xl border px-4 py-2 text-sm">Hoy</button><button onClick={() => setStartDate(d => addDays(d, 7))} className="rounded-xl border p-2" aria-label="Semana siguiente"><ChevronRight className="h-4 w-4"/></button></div></div>
 
         <div className="overflow-x-auto"><div className="min-w-[1120px]">
           <div className="grid grid-cols-[170px_repeat(7,minmax(130px,1fr))] border-b bg-[#f8f6f1]">
@@ -254,4 +286,4 @@ const inputStyle = `.input-panel{margin-top:.5rem;width:100%;border:1px solid rg
 function Field({ label, children }: { label: string; children: ReactNode }) { return <label className="block text-sm font-medium">{label}{children}</label>; }
 function Detail({ label, value }: { label: string; value: string }) { return <div><p className="text-[11px] font-semibold uppercase tracking-[.12em] text-[#173c34]/45">{label}</p><p className="mt-1 text-sm font-semibold">{value}</p></div>; }
 function LoadingScreen() { return <div className="grid min-h-screen place-items-center bg-[#f4f1ea] text-sm text-[#173c34]/60">Cargando panel…</div>; }
-function MetricCard({ label, value, detail }: { label: string; value: string; detail: string }) { return <article className="rounded-3xl border border-[#173c34]/10 bg-white p-5 shadow-sm md:p-6"><p className="text-xs font-semibold uppercase tracking-[.16em] text-[#173c34]/45">{label}</p><p className="mt-3 text-3xl font-semibold">{value}</p><p className="mt-1 text-sm text-[#173c34]/50">{detail}</p></article>; }
+function MetricCard({ label, value, detail }: { label: string; value: string; detail: string }) { return <article className="rounded-2xl border border-[#173c34]/10 bg-white p-3 shadow-sm md:rounded-3xl md:p-6"><p className="text-[9px] font-semibold uppercase tracking-[.12em] text-[#173c34]/45 md:text-xs md:tracking-[.16em]">{label}</p><p className="mt-2 text-lg font-semibold md:mt-3 md:text-3xl">{value}</p><p className="mt-1 hidden text-sm text-[#173c34]/50 sm:block">{detail}</p></article>; }
