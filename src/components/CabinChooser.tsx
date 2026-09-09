@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { cabins, PRICE_NOTE, type Cabin } from "@/lib/cabins";
 import { Lightbox } from "@/components/PhotoGallery";
 import { cabinWhatsappLink } from "@/lib/site";
@@ -149,6 +149,43 @@ export function CabinChooser() {
   const [activeId, setActiveId] = useState(cabins[0].id);
   const active = cabins.find((c) => c.id === activeId) ?? cabins[0];
 
+  const selectFromHash = useCallback((shouldScroll: boolean) => {
+    const cabin = cabins.find((item) => item.hash === window.location.hash);
+    if (!cabin) return;
+
+    setActiveId(cabin.id);
+
+    if (shouldScroll) {
+      window.requestAnimationFrame(() => {
+        document.getElementById("hospedaje")?.scrollIntoView({
+          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+          block: "start",
+        });
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    selectFromHash(true);
+
+    const onLocationChange = () => selectFromHash(true);
+    window.addEventListener("hashchange", onLocationChange);
+    window.addEventListener("popstate", onLocationChange);
+
+    return () => {
+      window.removeEventListener("hashchange", onLocationChange);
+      window.removeEventListener("popstate", onLocationChange);
+    };
+  }, [selectFromHash]);
+
+  const selectCabin = (cabin: Cabin) => {
+    setActiveId(cabin.id);
+
+    if (window.location.hash !== cabin.hash) {
+      window.history.pushState(null, "", cabin.hash);
+    }
+  };
+
   return (
     <div>
       <div
@@ -161,7 +198,7 @@ export function CabinChooser() {
             key={cabin.id}
             cabin={cabin}
             active={cabin.id === activeId}
-            onSelect={() => setActiveId(cabin.id)}
+            onSelect={() => selectCabin(cabin)}
           />
         ))}
       </div>
