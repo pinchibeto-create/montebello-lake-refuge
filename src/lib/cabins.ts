@@ -28,8 +28,8 @@ export const cabins: Cabin[] = [
     intro:
       "Cabañas acogedoras de dos niveles situadas frente al lago. En la planta baja hay una cama matrimonial, televisión y baño privado; arriba, una cama matrimonial y una individual con salida directa al balcón y vista a la laguna.",
     features: ["Hasta 5 personas", "Dos niveles", "2 camas matrimoniales y 1 individual", "Balcón con vista al lago", "Baño privado", "Televisión"],
-    hero: smallCabinPhotos[9]!,
-    gallery: smallCabinPhotos.filter((_, index) => index !== 9),
+    hero: smallCabinPhotos[0]!,
+    gallery: smallCabinPhotos.slice(1),
   },
   {
     id: "cabana-cristal",
@@ -40,8 +40,8 @@ export const cabins: Cabin[] = [
     intro:
       "La estrella de Cinco Lagos: un solo ambiente con dos paredes de cristal orientadas directamente hacia el lago. Permite disfrutar una cercanía espectacular con el paisaje conservando la comodidad, privacidad y protección del interior.",
     features: ["Exclusiva para 2 personas", "Un solo ambiente", "Dos paredes de cristal", "Vista directa al lago", "Baño privado", "Ideal para una escapada romántica"],
-    hero: crystalCabinPhotos[2]!,
-    gallery: crystalCabinPhotos.filter((_, index) => index !== 2),
+    hero: crystalCabinPhotos[0]!,
+    gallery: crystalCabinPhotos.slice(1),
   },
   {
     id: "cabana-grande",
@@ -52,8 +52,8 @@ export const cabins: Cabin[] = [
     intro:
       "La opción más cómoda para grupos grandes. Arriba tiene una habitación amplia con dos camas matrimoniales; abajo, dos habitaciones con una cama matrimonial cada una, conectadas por una pequeña sala de estar. Es privada, está rodeada de vegetación y tiene terraza techada y balcón con vista indirecta a la laguna.",
     features: ["3 habitaciones", "4 camas matrimoniales", "Sala con dos sofás", "Televisión", "Cafetera y microondas", "Terraza techada", "Balcón superior", "Vista indirecta a la laguna"],
-    hero: largeCabinPhotos[14]!,
-    gallery: largeCabinPhotos.filter((_, index) => index !== 14),
+    hero: largeCabinPhotos[0]!,
+    gallery: largeCabinPhotos.slice(1),
   },
   {
     id: "cabana-mayor",
