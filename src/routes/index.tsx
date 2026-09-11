@@ -23,7 +23,7 @@ export const Route = createFileRoute("/")({
       { name: "twitter:card", content: "summary_large_image" }, { name: "twitter:title", content: TITLE }, { name: "twitter:description", content: DESCRIPTION }, { name: "twitter:image", content: OG_IMAGE },
     ],
     links: [{ rel: "canonical", href: URL }],
-    scripts: [{ type: "application/ld+json", children: JSON.stringify({ "@context": "https://schema.org", "@type": "LodgingBusiness", name: "Cinco Lagos — Cabañas Mirador 5 Lagos", description: DESCRIPTION, url: URL, telephone: "+52 56 3884 4112", sameAs: [SITE.facebookUrl], address: { "@type": "PostalAddress", addressLocality: "La Trinitaria", addressRegion: "Chiapas", addressCountry: "MX" } }) }],
+    scripts: [{ type: "application/ld+json", children: JSON.stringify({ "@context": "https://schema.org", "@type": "LodgingBusiness", name: "Cinco Lagos — Cabañas Mirador 5 Lagos", description: DESCRIPTION, url: URL, telephone: "+52 961 255 9561", sameAs: [SITE.facebookUrl], address: { "@type": "PostalAddress", addressLocality: "La Trinitaria", addressRegion: "Chiapas", addressCountry: "MX" } }) }],
   }), component: LandingPage,
 });
 
