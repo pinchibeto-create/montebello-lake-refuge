@@ -3,8 +3,8 @@ export const SITE = {
   name: "Cinco Lagos",
   tagline: "Cabañas · Montebello · Chiapas",
   slogan: "La vista es parte del viaje.",
-  whatsappNumber: "525638844112",
-  phoneDisplay: "56 3884 4112",
+  whatsappNumber: "529612559561",
+  phoneDisplay: "961 255 9561",
   facebookUrl: "https://www.facebook.com/CabanasMirador5Lagos",
   googleMapsUrl:
     "https://maps.app.goo.gl/r9jaXho8BMMrAYKr5?g_st=ic",
