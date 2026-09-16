@@ -2,7 +2,7 @@
 export type Photo = { url: string; alt: string; w: number; h: number };
 
 export const photos = {
-  p01: { url: "/images/general/cinco-lagos-vista-01.png", alt: "Vista al lago desde la terraza, con dos sillas de madera frente al agua turquesa.", w: 1285, h: 1300 },
+  p01: { url: "/images/general/cinco-lagos-vista-01.webp", alt: "Pareja descansando en sillas de madera frente al lago y las montañas de Montebello.", w: 900, h: 1163 },
   p02: { url: "/images/cabanas-pequenas/cabana-pequena-01.png", alt: "Exterior de cabañas pequeñas tipo A-frame con fachadas de colores.", w: 1285, h: 735 },
   p03: { url: "/images/cabanas-pequenas/cabana-pequena-02.png", alt: "Interior con dos camas matrimoniales en cabaña pequeña.", w: 365, h: 180 },
   p04: { url: "/images/cabanas-pequenas/cabana-pequena-03.png", alt: "Interior de madera con cama, puerta y ventanas.", w: 365, h: 180 },
