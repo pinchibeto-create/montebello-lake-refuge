@@ -6,14 +6,26 @@ export const Route = createFileRoute("/simulador-bot")({ component: BotSimulator
 type Msg={role:"cliente"|"bot";text:string};
 type Trace={tool:string;args:Record<string,unknown>;result:unknown};
 type BotResult={reply?:string;trace?:Trace[];configured?:boolean;error?:string;detail?:string;status?:number;model?:string};
-const cases=["Hola, somos 2 y queremos la Cristal del 10 al 12 de octubre. ¿Cuánto cuesta?","Somos 4, queremos ir este sábado. ¿Qué tienen y hay restaurante?","Ya transferí el 50%, ¿ya quedó confirmada?","¿Me haces descuento si deposito ahorita?","Queremos la Cristal pero llevamos un perrito pequeño"];
+const cases=[
+ "Hola, somos 2 y queremos la Cristal del 10 al 12 de octubre. ¿Cuánto cuesta?",
+ "Somos 5 y queremos la Mayor el 16 de septiembre. ¿Qué tienen disponible?",
+ "Buscamos esta semana, del 14 al 18. ¿Qué días tienen?",
+ "La pequeña, ¿cuántas camas tiene?",
+ "¿Cuenta con wifi en la cabaña?",
+ "¿El otro 50% se da el día que lleguemos?",
+ "Creemos llegar después de las 9, ¿hay problema?",
+ "¿Podemos quedarnos en la Cristal una noche y en una pequeña la siguiente?",
+ "Ya transferí el 50%, ¿ya quedó confirmada?",
+ "¿Me haces descuento si deposito ahorita?",
+ "Queremos la Cristal pero llevamos un perrito pequeño"
+];
 function BotSimulator(){
- const [messages,setMessages]=useState<Msg[]>([{role:"bot",text:"Simulador conectado al cerebro real. No envía WhatsApp ni crea reservas."}]);
+ const [messages,setMessages]=useState<Msg[]>([{role:"bot",text:"Simulador conectado al cerebro real. Conserva el contexto de los últimos mensajes, consulta disponibilidad y tarifas reales, pero no envía WhatsApp ni crea reservas."}]);
  const [input,setInput]=useState(""); const [trace,setTrace]=useState<Trace[]>([]); const [busy,setBusy]=useState(false); const [error,setError]=useState(""); const [model,setModel]=useState("");
  async function simulate(text:string){
   if(!text.trim()||busy)return; setMessages(m=>[...m,{role:"cliente",text}]);setBusy(true);setError("");setTrace([]);setModel("");
   try{const session=getStoredSession();if(!session)throw new Error("Primero inicia sesión en /panel y después vuelve al simulador.");
-   const result=await invokeFunction<BotResult>("cinco-lagos-bot-simulator",session,{message:text,state:{conversation:messages.slice(-8)}});
+   const result=await invokeFunction<BotResult>("cinco-lagos-bot-simulator",session,{message:text,state:{conversation:messages.slice(-10)}});
    setTrace(result.trace||[]);setModel(result.model||"");
    if(result.error){const details=[result.error,result.detail,result.model&&`modelo: ${result.model}`,result.status&&`HTTP ${result.status}`].filter(Boolean).join(" · ");setError(details);setMessages(m=>[...m,{role:"bot",text:`Error de prueba: ${details}`}]);}
    else setMessages(m=>[...m,{role:"bot",text:result.reply||"Sin respuesta"}]);
@@ -21,7 +33,7 @@ function BotSimulator(){
  }
  function send(){const t=input.trim();if(!t)return;setInput("");void simulate(t)}
  return <main style={{minHeight:"100vh",background:"#f4f1e8",padding:"28px 16px",color:"#173326",fontFamily:"system-ui,sans-serif"}}><div style={{maxWidth:1180,margin:"0 auto"}}>
-  <header style={{marginBottom:20}}><div style={{fontSize:13,fontWeight:800,letterSpacing:1.5}}>CINCO LAGOS · LABORATORIO</div><h1 style={{fontSize:34,margin:"6px 0"}}>Simulador del recepcionista IA</h1><p style={{margin:0,opacity:.72}}>Usa OpenAI + reglas + disponibilidad y tarifas reales de Supabase. No envía mensajes a huéspedes.</p></header>
+  <header style={{marginBottom:20}}><div style={{fontSize:13,fontWeight:800,letterSpacing:1.5}}>CINCO LAGOS · LABORATORIO</div><h1 style={{fontSize:34,margin:"6px 0"}}>Simulador del recepcionista IA</h1><p style={{margin:0,opacity:.72}}>Usa OpenAI + reglas + ejemplos reales + disponibilidad y tarifas de Supabase. Conserva el historial reciente y no envía mensajes a huéspedes.</p></header>
   <div style={{display:"grid",gridTemplateColumns:"minmax(0,1.55fr) minmax(280px,.8fr)",gap:18}}>
    <section style={{background:"white",borderRadius:20,overflow:"hidden",boxShadow:"0 12px 35px #17332618"}}><div style={{padding:14,background:"#173326",color:"white",fontWeight:750}}>WhatsApp simulado <span style={{float:"right",fontSize:12,opacity:.7}}>{busy?"PENSANDO…":model?`IA REAL · ${model}`:"IA REAL · PRUEBA"}</span></div>
     <div style={{height:520,overflow:"auto",padding:18,background:"#efeae2"}}>{messages.map((m,i)=><div key={i} style={{display:"flex",justifyContent:m.role==="cliente"?"flex-end":"flex-start",margin:"9px 0"}}><div style={{maxWidth:"78%",padding:"10px 13px",borderRadius:14,background:m.role==="cliente"?"#d9fdd3":"white",boxShadow:"0 1px 2px #0002",lineHeight:1.4,whiteSpace:"pre-wrap"}}>{m.text}</div></div>)}</div>
