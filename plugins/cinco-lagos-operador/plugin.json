@@ -1,0 +1,31 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "cinco-lagos-operador",
+  "version": "0.1.0",
+  "description": "Consulta disponibilidad real y cotiza estancias de Cabañas Cinco Lagos con datos vigentes de Supabase.",
+  "author": {
+    "name": "Cabañas Cinco Lagos",
+    "url": "https://cabanascincolagos.com"
+  },
+  "homepage": "https://cabanascincolagos.com",
+  "repository": "https://github.com/pinchibeto-create/montebello-lake-refuge",
+  "keywords": ["hospedaje", "reservaciones", "montebello", "chiapas", "cabanas"],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Cinco Lagos Operador",
+        "shortDescription": "Disponibilidad y cotizaciones reales de Cinco Lagos.",
+        "longDescription": "Consulta cabañas, disponibilidad real, precios por fecha y alternativas de estancia para Cabañas Cinco Lagos sin inventar datos.",
+        "developerName": "Cabañas Cinco Lagos",
+        "capabilities": ["Read"],
+        "websiteURL": "https://cabanascincolagos.com",
+        "defaultPrompt": [
+          "Revisa qué cabañas hay disponibles para estas fechas y cotízame las mejores opciones.",
+          "Cotiza una estancia en Cinco Lagos y dime cuánto sería el anticipo del 50%.",
+          "Si mi cabaña preferida no está libre, busca alternativas para las mismas fechas."
+        ],
+        "brandColor": "#142F1F"
+      }
+    }
+  }
+}
