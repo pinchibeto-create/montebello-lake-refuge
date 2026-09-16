@@ -4,10 +4,11 @@ import { SITE, whatsappLink } from "@/lib/site";
 import { IconWhatsapp } from "@/components/Icons";
 
 const links = [
-  { href: "#hospedaje", label: "Hospedaje" },
-  { href: "#galeria", label: "Galería" },
-  { href: "#servicios", label: "Servicios" },
-  { href: "#ubicacion", label: "Ubicación" },
+  { href: "/#hospedaje", label: "Hospedaje" },
+  { href: "/#galeria", label: "Galería" },
+  { href: "/#servicios", label: "Servicios" },
+  { href: "/#ubicacion", label: "Ubicación" },
+  { href: "/que-hacer-lagunas-de-montebello", label: "Guía Montebello" },
 ];
 
 export function SiteHeader() {
@@ -27,7 +28,7 @@ export function SiteHeader() {
       }`}
     >
       <div className="container-x flex h-16 items-center justify-between gap-4 md:h-20">
-        <a href="#inicio" className="flex items-center gap-3">
+        <a href="/" className="flex items-center gap-3">
           <img
             src={logo.url}
             alt="Cinco Lagos — cabañas en Montebello, Chiapas"
@@ -43,7 +44,7 @@ export function SiteHeader() {
           </span>
         </a>
 
-        <nav aria-label="Navegación principal" className="hidden items-center gap-8 md:flex">
+        <nav aria-label="Navegación principal" className="hidden items-center gap-6 md:flex">
           {links.map((l) => (
             <a
               key={l.href}
