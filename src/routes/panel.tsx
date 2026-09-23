@@ -98,7 +98,7 @@ function PanelPage() {
       const rangeEnd = isoDate(new Date(monthCursor.getFullYear(), monthCursor.getMonth() + 1, 8));
       const [c, r] = await Promise.all([
         rest<Cabin[]>(`cabins?select=id,nombre,codigo,orden&cliente_id=eq.${membership.cliente_id}&activa=eq.true&order=orden.asc`, session),
-        rest<Reservation[]>(`reservations?select=id,cabin_id,source,guest_name,guest_phone,check_in,check_out,guests,status,payment_status,total_amount,paid_amount,reservation_code,payment_reference,added_by_name&cliente_id=eq.${membership.cliente_id}&status=in.(pendiente,confirmada)&check_in=lt.${rangeEnd}&check_out=gt.${rangeStart}`, session),
+        rest<Reservation[]>(`reservations?select=id,cabin_id,source,guest_name,guest_phone,check_in,check_out,guests,status,payment_status,total_amount,paid_amount,reservation_code,payment_reference,added_by_name&cliente_id=eq.${membership.cliente_id}&status=in.(pendiente,confirmada,completada)&check_in=lt.${rangeEnd}&check_out=gt.${rangeStart}`, session),
       ]);
       setCabins(c); setReservations(r);
     } catch (e) { setError(e instanceof Error ? e.message : "No se pudieron cargar las reservaciones"); }
