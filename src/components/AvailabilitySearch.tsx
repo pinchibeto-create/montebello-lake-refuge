@@ -89,6 +89,7 @@ export function AvailabilitySearch({
   const [guests, setGuests] = React.useState<number>(1);
   const [notice, setNotice] = React.useState<string>("");
   const [errors, setErrors] = React.useState<Record<string, string>>({});
+  const [policiesAcknowledged, setPoliciesAcknowledged] = React.useState(false);
   const [openArrival, setOpenArrival] = React.useState(false);
   const [openDeparture, setOpenDeparture] = React.useState(false);
 
@@ -125,6 +126,7 @@ export function AvailabilitySearch({
     if (!departure) next.departure = "Selecciona tu fecha de salida.";
     if (!cabin) next.cabin = "Selecciona el tipo de cabaña.";
     if (!guests || guests < 1) next.guests = "Indica cuántas personas se hospedarán.";
+    if (!policiesAcknowledged) next.policies = "Antes de continuar, confirma que has leído las condiciones de hospedaje.";
     if (arrival && departure && departure.getTime() <= arrival.getTime()) {
       next.departure = "Selecciona una fecha de salida posterior a la llegada.";
     }
@@ -174,6 +176,45 @@ export function AvailabilitySearch({
           WhatsApp.
         </p>
       </header>
+
+      <div className="mt-5 rounded-2xl border border-warm-white/15 bg-warm-white/10 px-4 py-3 text-xs leading-5 text-warm-white/90">
+        <p className="font-semibold text-warm-white">Antes de solicitar disponibilidad</p>
+        <p className="mt-1">
+          Anticipo del 50% para confirmar · cambios con al menos 24 horas de anticipación ·
+          cancelaciones con 72 horas de anticipación. El anticipo no es reembolsable por
+          cancelación voluntaria, sin perjuicio de los derechos legales aplicables.
+        </p>
+        <p className="mt-1 text-warm-white/70">
+          Entrada desde las 2:00 p. m. · salida a las 12:00 p. m. ·
+          no se admiten mascotas, salvo animales de asistencia · wifi satelital gratuito de velocidad variable.
+        </p>
+        <div className="mt-3 flex items-start gap-2">
+          <input
+            id="politicas-hospedaje-consulta"
+            type="checkbox"
+            checked={policiesAcknowledged}
+            onChange={(e) => {
+              setPoliciesAcknowledged(e.target.checked);
+              setErrors((current) => ({ ...current, policies: "" }));
+            }}
+            className="mt-0.5 h-4 w-4 shrink-0 accent-[#4fd5c3]"
+            aria-describedby={errors.policies ? "error-politicas-consulta" : undefined}
+          />
+          <span>
+            <label htmlFor="politicas-hospedaje-consulta" className="cursor-pointer">
+              He leído las condiciones principales y puedo consultar las{" "}
+            </label>
+            <a
+              href="/politicas"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-turquoise underline underline-offset-2 hover:text-warm-white"
+            >políticas completas</a>.
+          </span>
+        </div>
+        {errors.policies && <p id="error-politicas-consulta" role="alert" className="mt-1 text-[#ffc8aa]">{errors.policies}</p>}
+        <p className="mt-2 text-[11px] text-warm-white/65">Esta solicitud por WhatsApp no confirma ni cobra la reservación.</p>
+      </div>
 
       <div className="mt-5 flex flex-col gap-3 lg:flex-row lg:items-start lg:gap-2.5">
         {/* Llegada */}
