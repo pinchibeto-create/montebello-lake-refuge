@@ -36,6 +36,6 @@ export function availabilityWhatsappLink({
   cabin,
   guests,
 }: AvailabilityQuery) {
-  const mensaje = `Hola, quiero consultar disponibilidad en Cinco Lagos.\n\nFecha de llegada: ${arrival}\nFecha de salida: ${departure}\nCabaña: ${cabin}\nNúmero de personas: ${guests}\n\n¿Me pueden confirmar si está disponible y compartirme más información para reservar?\n\nGracias.`;
+  const mensaje = `Hola, quiero consultar disponibilidad en Cinco Lagos.\n\nFecha de llegada: ${arrival}\nFecha de salida: ${departure}\nCabaña: ${cabin}\nNúmero de personas: ${guests}\n\n¿Me pueden confirmar si está disponible y compartirme más información para reservar?\n\nHe consultado las políticas de hospedaje: https://cabanascincolagos.com/politicas\n\nGracias.`;
   return `https://wa.me/${SITE.whatsappNumber}?text=${encodeURIComponent(mensaje)}`;
 }
