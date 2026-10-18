@@ -281,6 +281,138 @@ function ReservationDetails({ session, reservation, cabin, canEdit, onEdit, onDe
   </div></div>;
 }
 
+
+function parsePickerDate(date: string) {
+  const [year, month, day] = date.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function pickerDateLabel(date: string) {
+  return new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "short", year: "numeric" }).format(parsePickerDate(date));
+}
+
+function DateRangeMonth({ month, start, end, onSelect }: { month: Date; start: string; end: string; onSelect: (date: string) => void }) {
+  const year = month.getFullYear();
+  const monthIndex = month.getMonth();
+  const offset = new Date(year, monthIndex, 1).getDay();
+  const monthLength = new Date(year, monthIndex + 1, 0).getDate();
+  const cellCount = Math.ceil((offset + monthLength) / 7) * 7;
+
+  return <div className="min-w-0">
+    <h4 className="mb-4 text-center text-base font-semibold capitalize">{monthTitle(month)}</h4>
+    <div className="grid grid-cols-7 gap-1 text-center">
+      {["D", "L", "M", "M", "J", "V", "S"].map((day, index) => <span key={index} className="pb-1 text-xs font-semibold text-[#173c34]/50">{day}</span>)}
+      {Array.from({ length: cellCount }, (_, index) => {
+        const day = index - offset + 1;
+        if (day < 1 || day > monthLength) return <span key={index} aria-hidden="true"/>;
+        const date = new Date(year, monthIndex, day);
+        const dateText = isoDate(date);
+        const endpoint = dateText === start || dateText === end;
+        const between = !!end && dateText > start && dateText < end;
+        return <button
+          key={dateText}
+          type="button"
+          onClick={() => onSelect(dateText)}
+          aria-label={displayDate(date)}
+          aria-pressed={endpoint}
+          className={`aspect-square min-h-9 rounded-xl text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1f8f7a] ${endpoint ? "bg-[#1f8f7a] text-white" : between ? "bg-[#e1f2eb] text-[#176957]" : "text-[#173c34] hover:bg-[#eaf6f1]"} ${dateText === isoDate(new Date()) && !endpoint ? "ring-1 ring-[#1f8f7a]" : ""}`}
+        >{day}</button>;
+      })}
+    </div>
+  </div>;
+}
+
+function DateRangePicker({ checkIn, checkOut, onChange }: { checkIn: string; checkOut: string; onChange: (checkIn: string, checkOut: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [step, setStep] = useState<"entrada" | "salida">("entrada");
+  const [draftStart, setDraftStart] = useState(checkIn);
+  const [draftEnd, setDraftEnd] = useState(checkOut);
+  const [cursor, setCursor] = useState(() => {
+    const date = parsePickerDate(checkIn);
+    return new Date(date.getFullYear(), date.getMonth(), 1);
+  });
+
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [open]);
+
+  function openCalendar() {
+    const date = parsePickerDate(checkIn);
+    setCursor(new Date(date.getFullYear(), date.getMonth(), 1));
+    setDraftStart(checkIn);
+    setDraftEnd(checkOut);
+    setStep("entrada");
+    setOpen(true);
+  }
+
+  function selectDay(date: string) {
+    if (step === "entrada") {
+      setDraftStart(date);
+      setDraftEnd("");
+      setStep("salida");
+      return;
+    }
+    if (!draftStart || date <= draftStart) {
+      setDraftStart(date);
+      setDraftEnd("");
+      return;
+    }
+    setDraftEnd(date);
+    onChange(draftStart, date);
+    setOpen(false);
+  }
+
+  function moveMonth(delta: number) {
+    setCursor(date => new Date(date.getFullYear(), date.getMonth() + delta, 1));
+  }
+
+  return <div className="sm:col-span-2">
+    <label className="block text-sm font-medium" id="reservation-dates-label">Fechas</label>
+    <button type="button" onClick={openCalendar} aria-labelledby="reservation-dates-label" aria-haspopup="dialog" aria-expanded={open} className="input-panel flex min-h-12 items-center gap-3 text-left">
+      <CalendarDays className="h-5 w-5 shrink-0 text-[#1f8f7a]"/>
+      <span className="flex-1 font-medium">{pickerDateLabel(checkIn)} — {pickerDateLabel(checkOut)}</span>
+      <ChevronRight className="h-4 w-4 shrink-0 text-[#173c34]/50"/>
+    </button>
+
+    {open && <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-6">
+      <button type="button" className="absolute inset-0 bg-black/50" onClick={() => setOpen(false)} aria-label="Cerrar calendario de fechas"/>
+      <div role="dialog" aria-modal="true" aria-label="Seleccionar fechas de entrada y salida" className="relative z-10 max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-3xl bg-white p-4 text-[#173c34] shadow-2xl sm:p-7">
+        <div className="flex items-start justify-between gap-3">
+          <div><p className="text-xs font-semibold uppercase tracking-[.16em] text-[#1f8f7a]">Cinco Lagos</p><h3 className="mt-1 text-xl font-semibold">Selecciona tus fechas</h3></div>
+          <button type="button" onClick={() => setOpen(false)} className="rounded-xl border p-2" aria-label="Cerrar calendario"><X className="h-5 w-5"/></button>
+        </div>
+        <div className="mt-5 grid grid-cols-2 gap-3">
+          <button type="button" onClick={() => setStep("entrada")} className={`rounded-2xl border p-3 text-left ${step === "entrada" ? "border-[#1f8f7a] bg-[#eaf6f1]" : "border-[#173c34]/15"}`}>
+            <span className="block text-xs font-semibold uppercase text-[#173c34]/60">Entrada</span><span className="mt-1 block text-sm font-semibold">{draftStart ? pickerDateLabel(draftStart) : "Seleccionar"}</span>
+          </button>
+          <button type="button" onClick={() => { if (draftStart) { setStep("salida"); setDraftEnd(""); } }} className={`rounded-2xl border p-3 text-left ${step === "salida" ? "border-[#1f8f7a] bg-[#eaf6f1]" : "border-[#173c34]/15"}`}>
+            <span className="block text-xs font-semibold uppercase text-[#173c34]/60">Salida</span><span className="mt-1 block text-sm font-semibold">{draftEnd ? pickerDateLabel(draftEnd) : "Seleccionar"}</span>
+          </button>
+        </div>
+        <p className="mt-4 text-center text-sm font-medium text-[#176957]" aria-live="polite">{step === "entrada" ? "Elige el día de entrada" : "Ahora elige el día de salida"}</p>
+        <div className="mt-3 flex items-center justify-between">
+          <button type="button" onClick={() => moveMonth(-1)} aria-label="Mes anterior" className="rounded-xl border p-2"><ChevronLeft className="h-5 w-5"/></button>
+          <button type="button" onClick={() => { const now = new Date(); setCursor(new Date(now.getFullYear(), now.getMonth(), 1)); }} className="rounded-xl border px-3 py-2 text-xs font-semibold">Ir a hoy</button>
+          <button type="button" onClick={() => moveMonth(1)} aria-label="Mes siguiente" className="rounded-xl border p-2"><ChevronRight className="h-5 w-5"/></button>
+        </div>
+        <div className="mt-4 grid grid-cols-1 gap-8 sm:grid-cols-2 sm:gap-6">
+          <DateRangeMonth month={cursor} start={draftStart} end={draftEnd} onSelect={selectDay}/>
+          <div className="hidden sm:block"><DateRangeMonth month={new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1)} start={draftStart} end={draftEnd} onSelect={selectDay}/></div>
+        </div>
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t pt-4">
+          <p className="text-xs text-[#173c34]/65">Un clic para la entrada y otro para la salida.</p>
+          <button type="button" onClick={() => setOpen(false)} className="rounded-xl border px-4 py-2 text-sm font-semibold">Cancelar</button>
+        </div>
+      </div>
+    </div>}
+  </div>;
+}
+
 function ReservationModal({ cabins, membership, session, reservation, onClose, onSaved }: { cabins: Cabin[]; membership: Membership; session: AuthSession; reservation?: Reservation; onClose: () => void; onSaved: () => void }) {
   const [cabinId, setCabinId] = useState(reservation?.cabin_id || cabins[0]?.id || ""), [source, setSource] = useState<Source>(reservation?.source || "local"), [guestName, setGuestName] = useState(reservation?.guest_name || ""), [guestPhone, setGuestPhone] = useState(reservation?.guest_phone || ""), [checkIn, setCheckIn] = useState(reservation?.check_in || isoDate(new Date())), [checkOut, setCheckOut] = useState(reservation?.check_out || isoDate(addDays(new Date(), 1))), [guests, setGuests] = useState(String(reservation?.guests || 2)), [paymentStatus, setPaymentStatus] = useState<Payment>(reservation?.payment_status || "pendiente"), [total, setTotal] = useState(reservation?.total_amount == null ? "" : String(reservation.total_amount)), [paid, setPaid] = useState(String(reservation?.paid_amount || 0)), [paymentReference, setPaymentReference] = useState(reservation?.payment_reference || ""), [error, setError] = useState(""), [saving, setSaving] = useState(false);
   async function submit(e: FormEvent) {
@@ -300,7 +432,7 @@ function ReservationModal({ cabins, membership, session, reservation, onClose, o
     <Field label="Cabaña"><select value={cabinId} onChange={e => setCabinId(e.target.value)} className="input-panel">{cabins.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}</select></Field>
     <Field label="Origen"><select value={source} onChange={e => setSource(e.target.value as Source)} className="input-panel">{Object.entries(sourceLabels).map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></Field>
     <Field label="Nombre"><input value={guestName} onChange={e => setGuestName(e.target.value)} className="input-panel"/></Field><Field label="Teléfono"><input value={guestPhone} onChange={e => setGuestPhone(e.target.value)} className="input-panel"/></Field>
-    <Field label="Entrada"><input type="date" required value={checkIn} onChange={e => setCheckIn(e.target.value)} className="input-panel"/></Field><Field label="Salida"><input type="date" required value={checkOut} onChange={e => setCheckOut(e.target.value)} className="input-panel"/></Field>
+    <DateRangePicker checkIn={checkIn} checkOut={checkOut} onChange={(entrada, salida) => { setCheckIn(entrada); setCheckOut(salida); }}/>
     <Field label="Huéspedes"><input type="number" min="1" value={guests} onChange={e => setGuests(e.target.value)} className="input-panel"/></Field><Field label="Estado de pago"><select value={paymentStatus} onChange={e => setPaymentStatus(e.target.value as Payment)} className="input-panel"><option value="pendiente">Pendiente</option><option value="anticipo">Anticipo</option><option value="pagado">Pagado</option></select></Field>
     <Field label="Total"><input type="number" min="0" value={total} onChange={e => setTotal(e.target.value)} className="input-panel"/></Field><Field label="Monto pagado"><input type="number" min="0" value={paid} onChange={e => setPaid(e.target.value)} className="input-panel"/></Field>
     <Field label="Autorización / referencia de transferencia"><input value={paymentReference} onChange={e => setPaymentReference(e.target.value)} className="input-panel" placeholder="Opcional"/></Field>
