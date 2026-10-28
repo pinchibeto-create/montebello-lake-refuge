@@ -1,0 +1,35 @@
+import {createFileRoute} from "@tanstack/react-router";
+import {useEffect,useState} from "react";
+import {getStoredSession,invokeFunction,type AuthSession} from "../lib/supabase-rest";
+export const Route=createFileRoute("/pre-reservas")({head:()=>({meta:[{title:"Pre-reservas | Cinco Lagos"},{name:"robots",content:"noindex,nofollow"}]}),component:PreReservas});
+type Item={id:string;approval_code:string;guest_name:string|null;guest_phone:string; cabin_type:string; check_in:string;check_out:string;guests:number;total_amount:number;deposit_amount:number;proof_media_type:string;status:string;reservation_id:string|null;created_at:string;reservation:{reservation_code:string;status:string}|null};
+const money=(n:number|null)=>n==null?"—":new Intl.NumberFormat("es-MX",{style:"currency",currency:"MXN"}).format(n);
+function PreReservas(){
+ const [session]=useState<AuthSession|null>(()=>getStoredSession()),[items,setItems]=useState<Item[]>([]),[busy,setBusy]=useState(""),[error,setError]=useState(""),[filter,setFilter]=useState("pending"),[previewed,setPreviewed]=useState<Record<string,boolean>>({});
+ async function load(){if(!session)return;setBusy("load");try{const r=await invokeFunction<{items:Item[]}>("cinco-lagos-prereserva-admin",session,{action:"list"});setItems(r.items);setError("");}catch(e){setError(e instanceof Error?e.message:String(e));}finally{setBusy("");}}
+ useEffect(()=>{void load()},[session]);
+ async function act(id:string,action:string){if(!session)return;if(["approve","reject","send"].includes(action)&&!window.confirm(action==="approve"?"¿Comprobó que el anticipo aparece realmente en su cuenta bancaria?":action==="reject"?"¿Rechazar la pre-reserva y liberar las fechas?":"¿Enviar ahora el PDF definitivo al huésped por WhatsApp?"))return;
+ setBusy(id+action);setError("");try{
+ const r=await invokeFunction<any>("cinco-lagos-prereserva-admin",session,{action,id});
+ if(action==="proof"){const bytes=Uint8Array.from(atob(r.base64),c=>c.charCodeAt(0));const object=URL.createObjectURL(new Blob([bytes],{type:r.mime}));window.open(object,"_blank","noopener,noreferrer");setTimeout(()=>URL.revokeObjectURL(object),60000);}
+ if(action==="preview"){window.open(r.url,"_blank","noopener,noreferrer");setPreviewed(p=>({...p,[id]:true}));}
+ if(action==="send")alert("PDF enviado por WhatsApp.");
+ if(action==="approve"||action==="reject")await load();
+ }catch(e){setError(e instanceof Error?e.message:String(e));}finally{setBusy("");}}
+ if(!session)return <div className="min-h-screen bg-[#f4f1ea] p-8 text-[#173c34]"><h1 className="text-2xl font-bold">Acceso restringido</h1><p>Inicie sesión en el panel de Cinco Lagos.</p><a className="underline" href="/panel">Ir al panel</a></div>;
+ const visible=items.filter(x=>filter==="all"||x.status===filter);
+ return <main className="min-h-screen bg-[#f4f1ea] text-[#173c34] px-4 py-8"><div className="mx-auto max-w-6xl">
+ <header className="mb-7 flex flex-wrap justify-between items-center gap-3"><div><a href="/panel" className="text-sm underline">← Volver al calendario</a><h1 className="mt-2 text-3xl font-semibold">Pre-reservas de Tito Lagos</h1><p className="mt-2 text-sm opacity-70">Revise el comprobante y verifique el ingreso bancario antes de aceptar.</p></div><button onClick={()=>void load()} className="rounded-xl border bg-white px-4 py-2">Actualizar</button></header>
+ <div className="flex gap-2 mb-5 flex-wrap">{[["pending","Pendientes"],["approved","Aprobadas"],["rejected","Rechazadas"],["all","Todas"]].map(([key,label])=><button key={key} onClick={()=>setFilter(key)} className={`rounded-full px-4 py-2 text-sm font-semibold ${filter===key?"bg-[#123d34] text-white":"bg-white"}`}>{label} ({key==="all"?items.length:items.filter(x=>x.status===key).length})</button>)}</div>
+ {error&&<p className="my-3 rounded-xl bg-red-50 p-4 text-red-800">{error}</p>}
+ {busy==="load"&&<p>Cargando...</p>}
+ <div className="grid gap-4">{visible.map(a=><article key={a.id} className="rounded-2xl border bg-white p-5 shadow-sm">
+ <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs tracking-widest text-[#2b7a66] font-bold">SOLICITUD {a.approval_code}</p><h2 className="mt-1 text-xl font-semibold">{a.guest_name||"Huésped sin nombre"}</h2><p className="text-sm opacity-60">{a.guest_phone} · {new Date(a.created_at).toLocaleString("es-MX")}</p></div><div className={`rounded-full px-3 py-1 text-sm font-semibold ${a.status==="pending"?"bg-amber-100 text-amber-900":"bg-emerald-100 text-emerald-900"}`}>{a.status==="pending"?"Pago por verificar":a.status==="approved"?"Aceptada":a.status}</div></div>
+ <div className="mt-4 grid gap-2 text-sm sm:grid-cols-3"><p><b>Cabaña:</b> {a.cabin_type}</p><p><b>Entrada:</b> {a.check_in}</p><p><b>Salida:</b> {a.check_out}</p><p><b>Personas:</b> {a.guests}</p><p><b>Total:</b> {money(a.total_amount)}</p><p><b>Anticipo:</b> {money(a.deposit_amount)}</p><p><b>Folio:</b> {a.reservation?.reservation_code||"Sin asignar"}</p></div>
+ <div className="mt-5 flex flex-wrap gap-2">
+ <button disabled={!!busy} onClick={()=>void act(a.id,"proof")} className="rounded-xl border px-3 py-2 text-sm font-semibold">Ver comprobante del huésped</button>
+ {a.status==="pending"&&a.reservation?.status==="pendiente"&&<><button disabled={!!busy} onClick={()=>void act(a.id,"approve")} className="rounded-xl bg-[#1c8068] px-4 py-2 text-sm font-semibold text-white">Aceptar pre-reserva</button><button disabled={!!busy} onClick={()=>void act(a.id,"reject")} className="rounded-xl border border-red-300 px-3 py-2 text-sm font-semibold text-red-800">Rechazar</button></>}
+ {a.status==="approved"&&<><button disabled={!!busy} onClick={()=>void act(a.id,"preview")} className="rounded-xl border px-3 py-2 text-sm font-semibold">Ver PDF de reserva real</button><button disabled={!!busy||!previewed[a.id]} onClick={()=>void act(a.id,"send")} title={!previewed[a.id]?"Primero abra el PDF":"Enviar"} className="rounded-xl bg-[#123d34] px-4 py-2 text-sm font-semibold text-white disabled:opacity-40">Enviar PDF por WhatsApp</button></>}
+ </div></article>)}
+ {visible.length===0&&!busy&&<p className="rounded-2xl bg-white p-10 text-center opacity-70">No hay pre-reservas en esta categoría.</p>}</div></div></main>
+}
