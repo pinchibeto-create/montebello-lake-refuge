@@ -1,12 +1,14 @@
 import {createFileRoute} from "@tanstack/react-router";
 import {useEffect,useState} from "react";
-import {getStoredSession,invokeFunction,type AuthSession} from "../lib/supabase-rest";
+import {getStoredSession,invokeFunction,signOutLocal,type AuthSession} from "../lib/supabase-rest";
 export const Route=createFileRoute("/pre-reservas")({head:()=>({meta:[{title:"Pre-reservas | Cinco Lagos"},{name:"robots",content:"noindex,nofollow"}]}),component:PreReservas});
 type Item={id:string;approval_code:string;guest_name:string|null;guest_phone:string; cabin_type:string; check_in:string;check_out:string;guests:number;total_amount:number;deposit_amount:number;proof_media_type:string;status:string;reservation_id:string|null;created_at:string;reservation:{reservation_code:string;status:string}|null};
 const money=(n:number|null)=>n==null?"—":new Intl.NumberFormat("es-MX",{style:"currency",currency:"MXN"}).format(n);
+const OWNER_ID="bbc35370-eb27-4bd1-b0de-a86f60c5a54f";
+const accessError=(message:string)=>/forbidden|unauthorized|sesión venció|invalid.*token|token.*expired/i.test(message);
 function PreReservas(){
- const [session]=useState<AuthSession|null>(()=>getStoredSession()),[items,setItems]=useState<Item[]>([]),[busy,setBusy]=useState(""),[error,setError]=useState(""),[filter,setFilter]=useState("pending"),[previewed,setPreviewed]=useState<Record<string,boolean>>({});
- async function load(){if(!session)return;setBusy("load");try{const r=await invokeFunction<{items:Item[]}>("cinco-lagos-prereserva-admin",session,{action:"list"});setItems(r.items);setError("");}catch(e){setError(e instanceof Error?e.message:String(e));}finally{setBusy("");}}
+ const [session]=useState<AuthSession|null>(()=>getStoredSession()),[items,setItems]=useState<Item[]>([]),[busy,setBusy]=useState(""),[error,setError]=useState(""),[accessDenied,setAccessDenied]=useState(false),[filter,setFilter]=useState("pending"),[previewed,setPreviewed]=useState<Record<string,boolean>>({});
+ async function load(){if(!session||session.user.id!==OWNER_ID)return;setBusy("load");try{const r=await invokeFunction<{items:Item[]}>("cinco-lagos-prereserva-admin",session,{action:"list"});setItems(r.items);setError("");setAccessDenied(false);}catch(e){const message=e instanceof Error?e.message:String(e);setError(message);setItems([]);if(accessError(message))setAccessDenied(true);}finally{setBusy("");}}
  useEffect(()=>{void load()},[session]);
  async function act(id:string,action:string){if(!session)return;if(["approve","reject","send"].includes(action)&&!window.confirm(action==="approve"?"¿Comprobó que el anticipo aparece realmente en su cuenta bancaria?":action==="reject"?"¿Rechazar la pre-reserva y liberar las fechas?":"¿Enviar ahora el PDF definitivo al huésped por WhatsApp?"))return;
  setBusy(id+action);setError("");try{
@@ -15,8 +17,8 @@ function PreReservas(){
  if(action==="preview"){window.open(r.url,"_blank","noopener,noreferrer");setPreviewed(p=>({...p,[id]:true}));}
  if(action==="send")alert("PDF enviado por WhatsApp.");
  if(action==="approve"||action==="reject")await load();
- }catch(e){setError(e instanceof Error?e.message:String(e));}finally{setBusy("");}}
- if(!session)return <div className="min-h-screen bg-[#f4f1ea] p-8 text-[#173c34]"><h1 className="text-2xl font-bold">Acceso restringido</h1><p>Inicie sesión en el panel de Cinco Lagos.</p><a className="underline" href="/panel">Ir al panel</a></div>;
+ }catch(e){const message=e instanceof Error?e.message:String(e);setError(message);if(accessError(message))setAccessDenied(true);}finally{setBusy("");}}
+ if(!session||session.user.id!==OWNER_ID||accessDenied)return <main className="min-h-screen bg-[#f4f1ea] p-6 text-[#173c34]"><section className="mx-auto max-w-lg rounded-2xl bg-white p-6 shadow-sm"><h1 className="text-2xl font-bold">Acceso exclusivo del propietario</h1><p className="mt-3">Las pre-reservas existen, pero para ver comprobantes y decidir sobre pagos debes iniciar sesión con la cuenta propietaria de Cinco Lagos.</p><p className="mt-3 text-sm opacity-75">Cuenta requerida: <b>pinchibeto@gmail.com</b></p>{session?.user.email&&<p className="mt-2 text-sm opacity-75">Cuenta abierta en este navegador: <b>{session.user.email}</b></p>}{accessDenied&&<p className="mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-900">La sesión actual fue rechazada por el servidor. Vuelve a iniciar sesión con la cuenta propietaria.</p>}<button type="button" onClick={()=>{signOutLocal();window.location.assign("/panel");}} className="mt-6 rounded-xl bg-[#123d34] px-5 py-3 font-semibold text-white">Cambiar cuenta e iniciar sesión</button><p className="mt-3 text-xs opacity-60">Este acceso no modifica ni elimina ninguna pre-reserva.</p></section></main>;
  const visible=items.filter(x=>filter==="all"||x.status===filter);
  return <main className="min-h-screen bg-[#f4f1ea] text-[#173c34] px-4 py-8"><div className="mx-auto max-w-6xl">
  <header className="mb-7 flex flex-wrap justify-between items-center gap-3"><div><a href="/panel" className="text-sm underline">← Volver al calendario</a><h1 className="mt-2 text-3xl font-semibold">Pre-reservas de Tito Lagos</h1><p className="mt-2 text-sm opacity-70">Revise el comprobante y verifique el ingreso bancario antes de aceptar.</p></div><button onClick={()=>void load()} className="rounded-xl border bg-white px-4 py-2">Actualizar</button></header>
@@ -31,5 +33,5 @@ function PreReservas(){
  {a.status==="pending"&&a.reservation?.status==="pendiente"&&<><button disabled={!!busy} onClick={()=>void act(a.id,"approve")} className="rounded-xl bg-[#1c8068] px-4 py-2 text-sm font-semibold text-white">Aceptar pre-reserva</button><button disabled={!!busy} onClick={()=>void act(a.id,"reject")} className="rounded-xl border border-red-300 px-3 py-2 text-sm font-semibold text-red-800">Rechazar</button></>}
  {a.status==="approved"&&<><button disabled={!!busy} onClick={()=>void act(a.id,"preview")} className="rounded-xl border px-3 py-2 text-sm font-semibold">Ver PDF de reserva real</button><button disabled={!!busy||!previewed[a.id]} onClick={()=>void act(a.id,"send")} title={!previewed[a.id]?"Primero abra el PDF":"Enviar"} className="rounded-xl bg-[#123d34] px-4 py-2 text-sm font-semibold text-white disabled:opacity-40">Enviar PDF por WhatsApp</button></>}
  </div></article>)}
- {visible.length===0&&!busy&&<p className="rounded-2xl bg-white p-10 text-center opacity-70">No hay pre-reservas en esta categoría.</p>}</div></div></main>
+ {visible.length===0&&!busy&&!error&&<p className="rounded-2xl bg-white p-10 text-center opacity-70">No hay pre-reservas en esta categoría.</p>}</div></div></main>
 }
