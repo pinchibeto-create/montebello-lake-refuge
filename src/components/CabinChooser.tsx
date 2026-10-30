@@ -4,14 +4,29 @@ import { Lightbox } from "@/components/PhotoGallery";
 import { cabinWhatsappLink } from "@/lib/site";
 import { IconArrow, IconCheck, IconUsers, IconWhatsapp } from "@/components/Icons";
 
+// Mostrar la campaña de noviembre solo desde octubre y hasta noviembre de 2026,
+// tomando como referencia la zona horaria del alojamiento.
+function showNovemberPromotion() {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Mexico_City",
+    year: "numeric",
+    month: "numeric",
+  }).formatToParts(new Date());
+  const year = Number(parts.find((part) => part.type === "year")?.value);
+  const month = Number(parts.find((part) => part.type === "month")?.value);
+  return year === 2026 && (month === 10 || month === 11);
+}
+
 function CabinCard({
   cabin,
   active,
   onSelect,
+  novemberPromotion,
 }: {
   cabin: Cabin;
   active: boolean;
   onSelect: () => void;
+  novemberPromotion: boolean;
 }) {
   return (
     <button
@@ -53,7 +68,7 @@ function CabinCard({
           {cabin.capacity}
         </p>
         <p className="mt-3 text-sm font-semibold text-turquoise">
-          Desde {cabin.priceFrom} MXN
+          {novemberPromotion ? "Noviembre 2026:" : "Desde"} {cabin.priceFrom} MXN
           <span className="font-normal text-muted-foreground"> / noche</span>
         </p>
         <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-foreground/80 transition group-hover:gap-2.5">
@@ -65,7 +80,7 @@ function CabinCard({
   );
 }
 
-function CabinDetail({ cabin }: { cabin: Cabin }) {
+function CabinDetail({ cabin, novemberPromotion }: { cabin: Cabin; novemberPromotion: boolean }) {
   const gallery = [cabin.hero, ...cabin.gallery];
   const [open, setOpen] = useState<number | null>(null);
 
@@ -114,7 +129,7 @@ function CabinDetail({ cabin }: { cabin: Cabin }) {
           <p className="text-xs uppercase tracking-[0.25em] text-turquoise">{cabin.capacity}</p>
           <h3 className="mt-3 text-3xl leading-tight md:text-4xl">{cabin.name}</h3>
           <p className="mt-3 text-lg font-semibold text-turquoise">
-            Desde {cabin.priceFrom} MXN
+            {novemberPromotion ? "Noviembre 2026:" : "Desde"} {cabin.priceFrom} MXN
             <span className="text-sm font-normal text-muted-foreground"> por noche</span>
           </p>
           <p className="mt-4 max-w-md text-base leading-relaxed text-muted-foreground">{cabin.intro}</p>
@@ -146,6 +161,7 @@ function CabinDetail({ cabin }: { cabin: Cabin }) {
 }
 
 export function CabinChooser() {
+  const novemberPromotion = showNovemberPromotion();
   const [activeId, setActiveId] = useState(cabins[0].id);
   const active = cabins.find((c) => c.id === activeId) ?? cabins[0];
 
@@ -188,6 +204,13 @@ export function CabinChooser() {
 
   return (
     <div>
+      {novemberPromotion && (
+        <aside aria-label="Promoción de noviembre de 2026" className="mb-6 rounded-xl border border-turquoise/40 bg-forest px-5 py-5">
+          <p className="text-base font-semibold text-turquoise">Precios especiales de noviembre 2026 · del 1 al 30</p>
+          <p className="mt-2 text-sm text-foreground/90">Cabañas Pequeñas $750 · Cristal $1,200 · Grande $1,500 · Mayor $1,500 MXN por noche.</p>
+          <p className="mt-2 text-xs text-muted-foreground">Tarifas generales sujetas a disponibilidad. Promociones adicionales para parejas elegibles se cotizan por separado. Fuera de noviembre los precios pueden variar.</p>
+        </aside>
+      )}
       <div
         role="tablist"
         aria-label="Tipos de cabaña"
@@ -198,6 +221,7 @@ export function CabinChooser() {
             key={cabin.id}
             cabin={cabin}
             active={cabin.id === activeId}
+            novemberPromotion={novemberPromotion}
             onSelect={() => selectCabin(cabin)}
           />
         ))}
@@ -205,7 +229,7 @@ export function CabinChooser() {
 
       <p className="mt-4 text-xs text-muted-foreground">{PRICE_NOTE}</p>
 
-      <CabinDetail key={active.id} cabin={active} />
+      <CabinDetail key={active.id} cabin={active} novemberPromotion={novemberPromotion} />
     </div>
   );
 }
