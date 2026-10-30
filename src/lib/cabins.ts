@@ -48,7 +48,7 @@ export const cabins: Cabin[] = [
     hash: "#cabana-grande",
     name: "Cabaña Grande",
     capacity: "Hasta 8 personas",
-    priceFrom: "$1,200",
+    priceFrom: "$1,500",
     intro:
       "La opción más cómoda para grupos grandes. Arriba tiene una habitación amplia con dos camas matrimoniales; abajo, dos habitaciones con una cama matrimonial cada una, conectadas por una pequeña sala de estar. Es privada, está rodeada de vegetación y tiene terraza techada y balcón con vista indirecta a la laguna.",
     features: ["3 habitaciones", "4 camas matrimoniales", "Sala con dos sofás", "Televisión", "Cafetera y microondas", "Terraza techada", "Balcón superior", "Vista indirecta a la laguna"],
@@ -60,7 +60,7 @@ export const cabins: Cabin[] = [
     hash: "#cabana-mayor",
     name: "Cabaña Mayor",
     capacity: "Hasta 8 personas",
-    priceFrom: "$1,300",
+    priceFrom: "$1,500",
     intro:
       "Destaca por su terraza con una hermosa vista directa al lago. Al entrar hay un espacio interior compacto y optimizado con sofá cama y frigobar; desde ahí se accede a dos habitaciones y a las escaleras que llevan al tapanco con espacios adicionales para dormir.",
     features: ["Hasta 8 personas", "Terraza con vista directa al lago", "2 habitaciones", "Sofá cama", "Frigobar", "Tapanco con espacios para dormir", "Baño privado"],
