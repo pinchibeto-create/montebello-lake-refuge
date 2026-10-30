@@ -68,7 +68,7 @@ function CabinCard({
           {cabin.capacity}
         </p>
         <p className="mt-3 text-sm font-semibold text-turquoise">
-          {novemberPromotion ? "Noviembre 2026:" : "Desde"} {cabin.priceFrom} MXN
+          {novemberPromotion ? "Noviembre 2026:" : "Desde"} {novemberPromotion ? cabin.novemberPrice : cabin.priceFrom} MXN
           <span className="font-normal text-muted-foreground"> / noche</span>
         </p>
         <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-foreground/80 transition group-hover:gap-2.5">
@@ -129,7 +129,7 @@ function CabinDetail({ cabin, novemberPromotion }: { cabin: Cabin; novemberPromo
           <p className="text-xs uppercase tracking-[0.25em] text-turquoise">{cabin.capacity}</p>
           <h3 className="mt-3 text-3xl leading-tight md:text-4xl">{cabin.name}</h3>
           <p className="mt-3 text-lg font-semibold text-turquoise">
-            {novemberPromotion ? "Noviembre 2026:" : "Desde"} {cabin.priceFrom} MXN
+            {novemberPromotion ? "Noviembre 2026:" : "Desde"} {novemberPromotion ? cabin.novemberPrice : cabin.priceFrom} MXN
             <span className="text-sm font-normal text-muted-foreground"> por noche</span>
           </p>
           <p className="mt-4 max-w-md text-base leading-relaxed text-muted-foreground">{cabin.intro}</p>
