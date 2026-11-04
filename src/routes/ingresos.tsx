@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { ArrowLeft, CalendarDays, CircleDollarSign, CreditCard, FileSpreadsheet, LogOut, RefreshCw, Wallet } from "lucide-react";
 import { getStoredSession, rest, signOutLocal, type AuthSession } from "../lib/supabase-rest";
 
@@ -48,7 +48,7 @@ function commissionFor(r: Reservation, typeName: string, review: Review | undefi
   if (review?.decision === "rejected") return { value: null, status: "rejected" };
   return { value: review ? Number(review.commission_amount) : fixed, status: review?.decision === "approved" ? "approved" : "pending" };
 }
-function SummaryCard({ title, value, detail, icon }: { title: string; value: string; detail: string; icon: React.ReactNode }) {
+function SummaryCard({ title, value, detail, icon }: { title: string; value: string; detail: string; icon: ReactNode }) {
   return <div className="rounded-2xl border border-[#173c34]/10 bg-white p-4 shadow-sm md:p-5">
     <div className="flex items-center gap-2 text-[#1f8f7a]">{icon}<span className="text-xs font-semibold text-[#173c34]/65">{title}</span></div>
     <strong className="mt-3 block text-xl font-bold tabular-nums md:text-2xl">{value}</strong>
