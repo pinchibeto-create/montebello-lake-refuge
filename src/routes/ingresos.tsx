@@ -9,6 +9,11 @@ export const Route = createFileRoute("/ingresos")({
 });
 
 const OWNER = "bbc35370-eb27-4bd1-b0de-a86f60c5a54f";
+const INCOME_VIEWERS = new Set([
+  OWNER,
+  "4ed8d2da-b6ec-403c-94c7-bf7e9a67ed89", // Homero
+  "968688b6-3797-4cc5-bc91-10aca60e53c5", // Freddy
+]);
 const CLIENT = "ef6d824e-03a9-436e-a56b-8e8032e9624a";
 const TIME_ZONE = "America/Merida";
 const SOURCE_LABELS: Record<string, string> = {
@@ -90,9 +95,9 @@ function IncomePage() {
     setLoading(true);
     setError("");
     try {
-      if (current.user.id !== OWNER) throw new Error("Este reporte financiero está disponible solamente para Luis, administrador de Cinco Lagos.");
+      if (!INCOME_VIEWERS.has(current.user.id)) throw new Error("No tienes autorización para consultar el reporte de ingresos.");
       const permissions = await rest<Array<{ rol: string }>>("usuario_clientes?select=rol&cliente_id=eq." + CLIENT + "&usuario_id=eq." + current.user.id + "&activo=eq.true", current);
-      if (!permissions.some(p => p.rol === "admin")) throw new Error("Tu cuenta no tiene permisos de administrador.");
+      if (!permissions.some(p => p.rol === "admin" || p.rol === "operador")) throw new Error("Tu cuenta no tiene acceso activo al reporte de ingresos.");
       const [r, c, t, v] = await Promise.all([
         getAllReservations(current),
         rest<Cabin[]>("cabins?select=id,nombre,cabin_type_id&cliente_id=eq." + CLIENT, current),
@@ -170,11 +175,11 @@ function IncomePage() {
       <div className="mx-auto flex max-w-[1450px] flex-wrap items-center justify-between gap-3 px-4 py-4 md:px-8">
         <div className="flex items-center gap-3">
           <img src="/images/logo/cinco-lagos-logo.jpeg" alt="Cinco Lagos" className="h-11 w-11 rounded-full object-cover" />
-          <div><p className="text-[10px] uppercase tracking-[.2em] text-white/60">Administración · Luis</p><h1 className="text-lg font-semibold">Estadísticas de ingresos</h1></div>
+          <div><p className="text-[10px] uppercase tracking-[.2em] text-white/60">Administración · Cinco Lagos</p><h1 className="text-lg font-semibold">Estadísticas de ingresos</h1></div>
         </div>
         <div className="flex items-center gap-2">
           <a href="/panel" className="inline-flex items-center gap-2 rounded-xl border border-white/20 px-3 py-2 text-xs font-semibold hover:bg-white/10"><ArrowLeft size={16} /> Reservaciones</a>
-          <a href="/comisiones" className="rounded-xl border border-white/20 px-3 py-2 text-xs font-semibold hover:bg-white/10">Comisiones</a>
+          {session?.user.id === OWNER && <a href="/comisiones" className="rounded-xl border border-white/20 px-3 py-2 text-xs font-semibold hover:bg-white/10">Comisiones</a>}
           <button onClick={() => session && void load(session)} aria-label="Actualizar ingresos" title="Actualizar" disabled={loading} className="rounded-xl p-2 disabled:opacity-50"><RefreshCw size={18} /></button>
           <button onClick={() => { signOutLocal(); window.location.href = "/panel"; }} aria-label="Cerrar sesión" title="Cerrar sesión" className="rounded-xl p-2"><LogOut size={18} /></button>
         </div>
