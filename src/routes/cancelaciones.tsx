@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { ArrowLeft, Banknote, CalendarX2, CircleDollarSign, Clock3, RefreshCw, RotateCcw } from "lucide-react";
 import { getStoredSession, rest, type AuthSession } from "../lib/supabase-rest";
 import CancellationEditor from "../components/cancellation-editor";
@@ -114,6 +114,6 @@ function CancellationsPage() {
     {editing&&session&&<CancellationEditor session={session} reservation={editing} previous={editing.cancellation} onClose={()=>setEditing(null)} onSaved={async()=>{setEditing(null);await load(session);}}/>}
   </main>;
 }
-function Stat({label,value,icon}:{label:string;value:string;icon:React.ReactNode}) {
+function Stat({label,value,icon}:{label:string;value:string;icon:ReactNode}) {
   return <article className="rounded-2xl border border-[#173c34]/10 bg-white p-4 shadow-sm"><div className="flex items-center gap-2 text-[#1f8f7a]">{icon}<p className="text-xs font-semibold text-[#173c34]/70">{label}</p></div><strong className="mt-3 block text-xl font-bold md:text-2xl">{value}</strong></article>;
 }
